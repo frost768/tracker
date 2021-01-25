@@ -30,31 +30,35 @@ function getUserLast24Hour(user) {
     else return [];
 }
 
-function compareUsers({id1,id2}){
+function compareUsers({id1,id2}) {
     var begin, end, begin_sessions, end_sessions, encounter = [], convo_end = 0;
     let user1sessions= getUserSessions({id:id1});
     let user2sessions= getUserSessions({id:id2});
+    if(!user1sessions.length || !user2sessions.length) return { "convo_end": 0, "encounter": 0, "tt": 0 };
     var usr1_first =user1sessions[0].on, usr2_first = user2sessions[0].on, 
     usr1_last = user1sessions[user1sessions.length - 1].off, 
     usr2_last = user2sessions[user2sessions.length - 1].off;
+    
     if (usr1_first > usr2_first) {
         begin = usr1_first;
         begin_sessions = user1sessions;
     }
+    
     else {
         begin = usr2_first;
         begin_sessions = user2sessions;
     }
+    
     if (usr1_last > usr2_last) {
         end = usr2_last;
         end_sessions = user1sessions.filter(function (x) { return x.on < end && x.off > begin; });
     }
+    
     else {
         end = usr1_last;
         end_sessions = user2sessions.filter(function (x) { return x.on < end && x.off > begin; });
     }
-    //console.log("begin_Sessions length:"+begin_sessions.length)
-    //console.log("end_Sessions length:"+end_sessions.length)
+
     begin_sessions = user1sessions;
     end_sessions = user2sessions;
     var _loop_2 = function (i) {
