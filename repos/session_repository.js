@@ -2,7 +2,7 @@ const db = require('../data/data/db.json');
 const { Analysis } = require('../services/Analysis');
 
 function getUserSessions({ id, name, from, to }) {
-    let sessions = [];
+    let sessions = [];  
     from = Date.parse(from);
     to = Date.parse(to);
     
@@ -11,7 +11,7 @@ function getUserSessions({ id, name, from, to }) {
         sessions = user.sessions;
         if(from) sessions = sessions.filter(x=> x.on > from)
         if(to) sessions = sessions.filter(x=> x.on < to)
-        return sessions;
+        return sessions.filter(x=> x.time/(1000*60)<120);
     }
     else return [];
 }
@@ -63,7 +63,9 @@ function compareUsers({id1,id2}) {
     end_sessions = user2sessions;
     var _loop_2 = function (i) {
         var u1 = begin_sessions[i];
+        let h=0;
         end_sessions.forEach(function (u2) {
+            if((u1.on > u2.on && u1.on > u2.off) || (u2.on > u1.off && u2.off > u1.off)) return; 
             var U2OnInU1Time = u1.on < u2.on && u2.on < u1.off;
             var U2OffInU1Time = u1.on < u2.off && u2.off < u1.off;
             var U2Sess_In_U1Sess = U2OnInU1Time && U2OffInU1Time;
@@ -79,7 +81,7 @@ function compareUsers({id1,id2}) {
                 convo_end++;
             }
             if (u2.on < u1.on && U2OffInU1Time) {
-                encounter.push(u2.off - u1.on);
+                encounter.push((u2.off - u1.on) / 1000);
                 convo_end++;
             }
             var b = (u2.off - u1.off) < 1200000
