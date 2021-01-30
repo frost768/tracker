@@ -14,7 +14,7 @@ function compareTagee({ id,tag }) {
     users.filter(x=> x.tag == tag && x.id!= id)
     .forEach((y) => {
         let c=compareUsers({ id1:id, id2:y.id });
-        a.push({
+        if(c.convo_end>0) a.push({
             id:y.id,
             name:y.name,
             convo_end:c.convo_end,
