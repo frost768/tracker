@@ -4,12 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "exec": "npx ts-node ./main.ts"
+    "exec": "npx ts-node ./main.ts",
+    "start": "sh ./run.sh"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@adiwajshing/baileys": "3.1.0",
+    "@mtproto/core": "5.3.0",
     "typescript": "^3.9.7"
   },
   "devDependencies": {
