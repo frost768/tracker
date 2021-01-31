@@ -10,3 +10,4 @@ ts*.json
 models
 *.env
 http2*
+package-lock.json
