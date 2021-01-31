@@ -1,0 +1,1 @@
+env $(cat tg.env) node main.js
