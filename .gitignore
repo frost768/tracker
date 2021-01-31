@@ -133,4 +133,5 @@ server/*.ts
 server/models
 server/*.env
 server/http2*
+server/package-lock.json
 

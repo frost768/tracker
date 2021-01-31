@@ -1,4 +1,6 @@
 const fs = require("fs");
+const Database = require('better-sqlite3');
+const db2 = new Database('./data/deneme.db');
 var first = "./data/db.json";
 var second = "./data/data/db.json";
 var bkp = "./data/bkp/";
@@ -148,8 +150,55 @@ function sessionLogger(json, users) {
   return users;
 }
 
+
+function tgSessionLogger(json,users) {
+    var usr_found = users.find((elem) => elem[1] == json.id);
+    var not_in_users_but_online = !usr_found && json.type == "available";
+    var in_users_and_got_offline = usr_found && json.type == "unavailable";
+    if (not_in_users_but_online) {
+      var usr = [json.name, json.id, Date.now()];
+      users.push(usr);
+      console.log("TG-Logger");
+      console.log("-------|" + new Date().toLocaleString("tr") + "|--------");
+      users.forEach((u) => {
+      console.log(
+        "|| • " + u[0] + "\t||" + new Date(u[2]).toLocaleTimeString("tr")
+        );
+      });
+      console.log("-------|" + users.length + "/" + 68 + "|--------");
+      console.log("TG-Logger");
+
+    }
+
+    if (in_users_and_got_offline) {
+      // Update users[] array
+      users = users.filter((elem) => elem[1] != usr_found[1]);
+
+      // Add offline time
+      usr_found.push(Date.now());
+      let timespent = usr_found[3] - usr_found[2]
+      // Add session to DB and return timespent formatted
+      db2.prepare(`INSERT INTO sessions 
+      (user_id, time_on, time_off, time_spent) 
+      VALUES (${usr_found[1]}, ${usr_found[2]}, ${usr_found[3]}, ${timespent});`)
+      .run();
+
+      console.log(
+        "| × " + json.name,
+        "||",
+        new Date(timespent).toLocaleTimeString("tr"),
+        "||",
+        new Date(usr_found[3]).toLocaleString("tr")
+      );
+
+      usr_found = undefined;
+      return users;
+    }
+}
+
 module.exports = {
     readDB,
     sessionLogger,
-    checkTempJson
+    checkTempJson,
+    tgSessionLogger
 }

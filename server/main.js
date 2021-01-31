@@ -1,6 +1,6 @@
-const { tg }  = require('./tg.js');
+const { logger }  = require('./tg.js');
 const { wa, sendRequest }  = require('./wa.js');
-const { readDB, checkTempJson,sessionLogger }  = require('./utils.js');
+const { readDB, checkTempJson, sessionLogger, tgSessionLogger }  = require('./utils.js');
 
 // --------------- WEBSOCKET -------------------
 const WebSocket = require("ws");
@@ -11,7 +11,7 @@ wss.on("connection", (socket, req) => {
   a.on("send", (args) => {
     socket.send(JSON.stringify(args));
   });
-
+  
   socket.on('close',()=>{
       console.log('cikti')
   })
@@ -27,6 +27,13 @@ async function main() {
     users = sessionLogger(json, users);
     a.emit("send", json);
   });
+
+  var users2 = [];
+  logger.on('user-presence-update', json => {
+    users2 = tgSessionLogger(json,users2);
+  })
+
+  
 }
 
 main().catch((x) => console.log(x));
