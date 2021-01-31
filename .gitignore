@@ -1,0 +1,12 @@
+data
+src
+node_modules
+web
+js
+localhost*
+http2*
+ts*.json
+*.ts
+models
+*.env
+http2*
