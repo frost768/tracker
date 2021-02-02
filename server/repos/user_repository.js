@@ -1,6 +1,6 @@
 const users = require('../data/names.json');
 const fs = require('fs');
-const { compareUsers } = require('./session_repository');
+const { compareUsersDB } = require('./session_repository_sqlite');
 function getUser({ id , name, tag }) {
     let filteredUsers = users;
     if(id || name || tag) filteredUsers= users.filter(x=> x.id == id || x.name == name || x.tag == tag);
@@ -13,7 +13,7 @@ function compareTagee({ id,tag }) {
     let a=[];
     users.filter(x=> x.tag == tag && x.id!= id)
     .forEach((y) => {
-        let c=compareUsers({ id1:id, id2:y.id });
+        let c = compareUsersDB({ id1:id, id2:y.id });
         if(c.convo_end>0) a.push({
             id:y.id,
             name:y.name,
