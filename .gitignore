@@ -119,19 +119,7 @@ app/dist
 *.sln
 *.sw?
 
-app/src/assets
-
-server/data
-server/src
-server/node_modules
-server/web
-server/js
-server/localhost*
-server/http2*
-server/ts*.json
-server/*.ts
-server/models
-server/*.env
-server/http2*
-server/package-lock.json
+**/src/assets
+**/data
+**/*.env
 
