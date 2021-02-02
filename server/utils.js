@@ -1,6 +1,7 @@
 const fs = require("fs");
 const Database = require('better-sqlite3');
 const db2 = new Database('./data/deneme.db');
+const id_tag = require('./data/id_tag.json');
 var first = "./data/db.json";
 var second = "./data/data/db.json";
 var bkp = "./data/bkp/";
@@ -16,7 +17,6 @@ function readDB(){
 	for (let i = 0; i < files.length; i++) {
 	  const file = files[i];
 	  try {
-
 	        h++;
 	        console.log(file)
 	        db = fs.readFileSync(file, "utf-8");
@@ -102,10 +102,11 @@ function checkTempJson() {
       users = JSON.parse(file);
     } else console.log("Eski kayıt yok....");
   }
-
+  
   return users;
 }
-  
+
+const insert = db2.prepare("INSERT INTO sessions (user_id, user_tag, time_on, time_off, time_spent) VALUES (@id, @tag, @time_on, @time_off, @time_spent);");
 function sessionLogger(json, users) {
   var num = json.id.substr(0, 12);
   var usr_found = users.find((elem) => elem[0] == num);
@@ -133,7 +134,14 @@ function sessionLogger(json, users) {
 
     // Add session to DB and return timespent formatted
     let timespent = addSession(usr_found);
-    
+    let session = {
+      id: usr_found[0].toString(), 
+      tag: id_tag[usr_found[0]],
+      time_on: usr_found[1], 
+      time_off: usr_found[2],
+      time_spent: timespent
+    }
+    insert.run(session)
     console.log(
       "| × " + usr_found[0],
       "||",
@@ -149,7 +157,6 @@ function sessionLogger(json, users) {
 
   return users;
 }
-
 
 function tgSessionLogger(json,users) {
     var usr_found = users.find((elem) => elem[1] == json.id);
@@ -178,10 +185,14 @@ function tgSessionLogger(json,users) {
       usr_found.push(Date.now());
       let timespent = usr_found[3] - usr_found[2]
       // Add session to DB and return timespent formatted
-      db2.prepare(`INSERT INTO sessions 
-      (user_id, time_on, time_off, time_spent) 
-      VALUES (${usr_found[1]}, ${usr_found[2]}, ${usr_found[3]}, ${timespent});`)
-      .run();
+      let session = {
+        id: usr_found[1].toString(), 
+        tag: id_tag[usr_found[1]],
+        time_on: usr_found[2], 
+        time_off: usr_found[3],
+        time_spent: timespent
+      }
+      insert.run(session)
 
       console.log(
         "| × " + json.name,
