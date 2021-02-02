@@ -1,4 +1,4 @@
-const { logger }  = require('./tg.js');
+const { logger, init }  = require('./tg.js');
 const { wa, sendRequest }  = require('./wa.js');
 const { readDB, checkTempJson, sessionLogger, tgSessionLogger }  = require('./utils.js');
 
@@ -18,19 +18,23 @@ wss.on("connection", (socket, req) => {
 });
 // ---------------------------------------------
 
+var users = [];
+var tg_users = [];
 async function main() {
-  readDB()
-  var users = checkTempJson();
-  await wa.connect()
-  await sendRequest();
+  //init(async ()=>{
+    readDB()
+    users = checkTempJson();
+    await wa.connect()
+    await sendRequest();
+ // })
+
   wa.on("user-presence-update", (json) => {
     users = sessionLogger(json, users);
     a.emit("send", json);
   });
 
-  var users2 = [];
   logger.on('user-presence-update', json => {
-    users2 = tgSessionLogger(json,users2);
+    tg_users = tgSessionLogger(json, tg_users);
   })
 
   
