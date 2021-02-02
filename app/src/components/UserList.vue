@@ -30,10 +30,10 @@ export default {
   },
 
   data() {
-    return {};
+    return { query:""};
   },
   created(){
-    this.ws = new WebSocket('ws://192.168.1.35:8081');
+    this.ws = new WebSocket('ws://192.168.1.35:8083');
     store.dispatch("fetchUsers").then(()=>{
       store.dispatch('fetchOnline').then(()=> {
       this.ws.onmessage = function(data) {

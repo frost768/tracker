@@ -8,7 +8,7 @@
      color="green"
      app>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer">></v-app-bar-nav-icon>
-      <v-app-bar-title color="white"></v-app-bar-title>
+      <v-app-bar-title color="white">WhatsApp Tracker</v-app-bar-title>
     </v-app-bar>
 
     <!-- Sizes your content based upon application components -->
@@ -34,6 +34,7 @@ export default {
   data(){
     return {
       drawer:false,
+     
     }
   },
 };

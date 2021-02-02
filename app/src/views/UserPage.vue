@@ -55,18 +55,15 @@
               indeterminate
             ></v-progress-linear>
           </template>
-          <v-sparkline
+          <chart ref="chart2" :type="'scatter'" :options="compareArray2" :series="compareArray2.series"></chart>
+          <!-- <v-sparkline
             color="#fcad03"
             smooth="30"
             fill="fill"
             :value="chartdata.datasets[0].data"
             :labels="chartdata.labels"
             auto-draw
-          ></v-sparkline>
-          <v-date-picker
-            v-model="dates"
-            range
-      ></v-date-picker>
+          ></v-sparkline> -->
         </v-card>
 
         <v-card :loading="loaded" class="mx-auto my-12" max-width="800">
@@ -79,14 +76,14 @@
             ></v-progress-linear>
           </template>
           <chart :type="'bar'" :options="options" :series="series"></chart>
-          <v-sparkline
+          <!-- <v-sparkline
             color="#fcad03"
             smooth="30"
             fill="fill"
             :value="hourFreq.freqs"
             :labels="hourFreq.i"
             auto-draw
-          ></v-sparkline>
+          ></v-sparkline> -->
         </v-card>
       </v-col>
       <v-col lg="5" md="4" cols="12">
@@ -99,14 +96,15 @@
               indeterminate
             ></v-progress-linear>
           </template>
-          <v-sparkline
+          <chart :type="'bar'" :options="options" :series="series"></chart>
+          <!-- <v-sparkline
             color="#fcad03"
             smooth="30"
             fill="fill"
             :value="minuteFreq.freqs"
             :labels="minuteFreq.i"
             auto-draw
-          ></v-sparkline>
+          ></v-sparkline> -->
         </v-card>
 
         <v-card
@@ -124,14 +122,14 @@
             ></v-progress-linear>
           </template>
           <chart :type="'bar'" :options="compareArray" :series="compareArray.series"></chart>
-          <v-sparkline
+          <!-- <v-sparkline
             color="#fcad03"
             smooth="30"
             fill="fill"
             :value="compareArray.time"
             :labels="compareArray.labels"
             auto-draw
-          ></v-sparkline>
+          ></v-sparkline> -->
         </v-card>
 
         <v-card :loading="loaded" max-width="800">
@@ -143,14 +141,15 @@
               indeterminate
             ></v-progress-linear>
           </template>
-          <v-sparkline
+          <chart type="line" :options="last24Chart" :series="last24Chart.series"></chart>
+          <!-- <v-sparkline
             color="#fcad03"
             smooth="30"
             fill="fill"
             :value="last24.daily"
             :labels="last24.i"
             auto-draw
-          ></v-sparkline>
+          ></v-sparkline> -->
           <v-slider
             v-model="lastN"
             @change="setlastN"
@@ -181,7 +180,6 @@ export default {
   data() {
     return {
       loaded: true,
-      dates:[],
       lastSeen: "",
       options : {
         chart: {
@@ -196,7 +194,20 @@ export default {
         name: 'sales',
         data: []
       }],
-      
+      last24Chart: { chart:{ animations: {enabled:false} },xaxis: { tickAmount: 6 }, series:[{ name:'dsfdsf',data: [] }],  },
+      compareArray2: { chart:{ animations: {enabled:false} },
+            xaxis: {
+              type: 'datetime',
+              // min: new Date('27 Jan 2021').getTime(),
+              labels: {
+                datetimeUTC: false,
+              }
+            },
+            tooltip: {
+              x: {
+                format: 'dd MMM yyyy'
+              }
+            }, series:[{ name:'dsfdsf',data: [] }],  },
       chartdata: {
         labels: [],
         datasets: [{ backgroundColor: "#fff579", data: [] }],
@@ -209,7 +220,7 @@ export default {
       usagePercent: 0,
       lastN: 10,
       last24Backup: [],
-      compareArray: { xaxis:{ categories: [] }, series:[{ name:'dsfdsf',data: [] }] },
+      compareArray: { labels:[] , series:[{ name:'dsfdsf',data: [] }] },
       compareLoad: false,
     };
   },
@@ -217,20 +228,23 @@ export default {
   methods: {
     async fetchSessions() {
       this.loaded = true;
-      // this.compareArray.time = [];
+      // this.compareArray.time_spent = [];
       const res = await getUserSessions({
         id: this.$route.params.id,
-        from: "2021-01-25 17:00",
-        //to: "2021-01-25 07:30",
+        from: "2021-02-01 23:30",
+        // to: "2021-01-29 03:30",
 
       });
       if (res.length) {
-        const last = new Date(res[res.length - 1].off);
+        const last = new Date(res[res.length - 1].time_off);
         this.lastSeen = last.toLocaleString();
-        this.chartdata.labels = res.map((y) =>
-          new Date(y.on).toLocaleTimeString()
-        );
-        this.chartdata.datasets[0].data = res.map((k) => k.time);
+        // this.chartdata.labels = res.map((y) =>
+        //   new Date(y.time_on).toLocaleTimeString()
+        // );
+        this.chartdata.datasets[0].data = res.map((k) =>[k.time_on, parseInt(k.time_spent / 1000)]);
+        // this.compareArray2.categories = this.chartdata.labels
+
+        this.compareArray2.series = [{ data:this. chartdata.datasets[0].data }]
       } else return [];
     },
 
@@ -251,7 +265,9 @@ export default {
         .slice(res.lastNday.length - this.lastN, res.lastNday.length);
       this.last24.daily = res.lastNday
         .map((x) => x.daily)
-        .slice(res.lastNday.length - this.lastN, res.lastNday.length);
+        //.slice(res.lastNday.length - this.lastN, res.lastNday.length);
+      
+      this.last24Chart.series = [{ data:  this.last24.daily }]
 
       this.longestSession = res.longestSession / 1000;
       this.totalTimeSpent = res.totalTimeSpent / 1000;
@@ -263,8 +279,8 @@ export default {
       this.compareLoad = true;
       const res = await compareTagee(this.user);
       this.compareLoad = false;
-      this.compareArray.xaxis.categories = res.map((x) => x.name);
-      this.compareArray.series[0].data = res.map((x) => x.tt / 1000);
+      this.compareArray = { labels: res.map((x) => x.name) };
+      this.compareArray.series = [ { data: res.map((x) => parseInt(x.tt/ 60)) }];
     },
 
     setlastN() {

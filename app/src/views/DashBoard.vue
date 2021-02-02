@@ -85,7 +85,7 @@ export default {
     mostActive: async function b() {
       let mostActive = await mostActiveUsers();
       this.mostActiveUsers = mostActive.map((x) => {
-        return { name: x.name, tt: Math.floor(x.tt / (1000 * 3600)) };
+        return { name: x.id, tt: Math.floor(x.tt/(1000*60*24)) };
       });
     },
   },

@@ -10,7 +10,8 @@ function request(url,body={}) {
     return new Promise(function(resolve){
         let buffer = JSON.stringify(body);
         req.end(buffer);
-
+        // let data=''; 
+        // req.on('data', (chunk) => { data += chunk; });
         req.on('response',(response)=>{
             let data = '';
             response.on('data',(chunk)=> data+=chunk);
