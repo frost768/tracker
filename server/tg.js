@@ -60,19 +60,7 @@ function exportAuthorization() {
 }
 
 let contacts = undefined;
-async function init() {
-    let res = undefined;
-    const { phone_code_hash } =  await sendCode(options);
-    creds.phone_code_hash = phone_code_hash;
-    rl.question('Code: ', async (code) => {
-        creds.phone_code = parseInt(code);
-        // writeFileSync('./data/tghash',JSON.stringify([phone_code_hash,code]));
-        sign().then(response =>{
-            res = response
-        }).catch(err=>{
-            console.log(err);
-        })
-    })
+async function init(cb) {
     if(!existsSync('./data/tgContacts.json')){
         contacts = await getContacts();
         writeFileSync('./data/tgContacts.json',JSON.stringify(contacts.users,null,'\t'),{encoding:'utf-8'})
@@ -80,7 +68,17 @@ async function init() {
     else {
         contacts = JSON.parse(readFileSync('./data/tgContacts.json'));
     }
-    return res;
+    sendCode(options).then(x=>{
+        creds.phone_code_hash = x.phone_code_hash;
+        rl.question('Code: ', async (code) => {
+            creds.phone_code = parseInt(code);
+            sign().then(x => {
+               cb();
+            }).catch(err => {
+            console.log(err);
+            })
+        })
+    })
 }
 
 tg.updates.on('updateShort', message => {
@@ -109,27 +107,6 @@ tg.updates.on('updateShort', message => {
             }
             logger.emit('user-presence-update',json)
         }
-    }
-})
-init().then(x=>{
-    console.log("OK");
-    console.log(x);
-})
-.catch(async(x)=>{
-    console.log("ERROR: ",x.error_message);
-    if(x.error_code == 400)
-    {
-        const { phone_code_hash } =  await sendCode(options);
-        creds.phone_code_hash = phone_code_hash;
-        rl.question('Code: ', async (code) => {
-            creds.phone_code = parseInt(code);
-            // writeFileSync('./data/tghash',JSON.stringify([phone_code_hash,code]));
-            sign()
-            .then(res=> console.log(res))
-            .catch(err=>{
-                console.log("ERROR 2: ",err.error_message);
-            })
-        })
     }
 })
 
