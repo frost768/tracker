@@ -1,7 +1,15 @@
 const http = require('http');
 const { networkInterfaces } = require('os');
 const { controller } = require('./controller/controller');
-const ip = networkInterfaces()['Wi-Fi'] ? networkInterfaces()['Wi-Fi'][1].address : 'localhost';
+
+let ip = 'localhost';
+if (networkInterfaces()['wlan0']) 
+    ip = networkInterfaces()['wlan0'][0].address;
+else if (networkInterfaces()['ap0']) 
+    ip = networkInterfaces()['ap0'][0].address;
+else if (networkInterfaces()['Wi-Fi']) 
+    ip = networkInterfaces()['Wi-Fi'][1].address;
+
 console.log(ip);
 http.createServer(function (req, res) {
     let data=''
@@ -12,4 +20,4 @@ http.createServer(function (req, res) {
         res.end(response)
     })
     req.push()
-}).listen(9000,ip);
+}).listen(9000, ip);
