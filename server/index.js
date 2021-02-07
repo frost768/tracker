@@ -15,9 +15,9 @@ http.createServer(function (req, res) {
     let data=''
     req.on('data',(chunk)=>{ data+=(chunk)})
     req.on('end', () => { 
-        let response = JSON.stringify(JSON.parse(controller(req.url,data)))
-        res.setHeader('Access-Control-Allow-Origin','*')
-        res.end(response)
+        controller(req.url, data, response => {
+            res.setHeader('Access-Control-Allow-Origin','*')
+            res.end(response)
+        })
     })
-    req.push()
 }).listen(9000, ip);
