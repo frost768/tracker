@@ -6,9 +6,9 @@
 //     compareUsers,
 //     getUserLast24Hour
 // } = require('../repos/session_repository.js')
+
 const { 
     getUser,
-    compareTagee,
     getOnlineUsers
 } = require('../repos/user_repository.js')
 
@@ -16,7 +16,6 @@ const {
     getAllTimeSpentDB,
     getUserSessionsDB,
     mostActiveUsersDB,
-    compareUsersDB,
     getUserLast24HourDB,
     getUserSessionsAnalysisDB,
 } = require('../repos/session_repository_sqlite.js')
@@ -54,12 +53,10 @@ const endpoints = {
     },
 
     COMPARE_USERS:{ 
-        action: users => compareUsersDB(users),
         url: api + sessions + '/compare'
     },
 
-    COMPARE_USER_TAGEE:{ 
-        action: user => compareTagee(user),
+    COMPARE_USER_TAGEE:{
         url: api + user + '/compare/tagee'
     },
 
