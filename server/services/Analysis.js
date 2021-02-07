@@ -22,7 +22,6 @@ class Analysis {
         return AnalysisArray;
     }
 
-    // USER SESSIONS
     static getTotalTime(sessions){
         return sessions.reduce((acc,s)=>acc+s.time,0);
     }
