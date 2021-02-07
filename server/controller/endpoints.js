@@ -59,12 +59,12 @@ const endpoints = {
     },
 
     COMPARE_USER_TAGEE:{ 
-        action: (user) => compareTagee(user),
+        action: user => compareTagee(user),
         url: api + user + '/compare/tagee'
     },
 
     USER: { 
-        action:(user) => getUser(user),
+        action: user => getUser(user),
         url: api + user 
     },
 
