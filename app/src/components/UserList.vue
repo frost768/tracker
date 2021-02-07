@@ -28,12 +28,8 @@ export default {
   components: {
     DBRecords,
   },
-
-  data() {
-    return { query:""};
-  },
   created(){
-    this.ws = new WebSocket('ws://192.168.1.35:8083');
+    this.ws = new WebSocket('ws://192.168.43.1:8081');
     store.dispatch("fetchUsers").then(()=>{
       store.dispatch('fetchOnline').then(()=> {
       this.ws.onmessage = function(data) {
