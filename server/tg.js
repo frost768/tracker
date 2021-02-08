@@ -18,8 +18,8 @@ const tg = new MTProto({
 
 const creds = {
     phone_number,
-    phone_code_hash: "blabla",
-    phone_code: "11111"
+    phone_code_hash: 'blabla',
+    phone_code: '11111'
 }
 
 const options = {
@@ -48,7 +48,7 @@ function getContacts() {
 }
 async function sign() {
     const signedIn = await signIn(creds);    
-    console.info((new Date()).toISOString(),"TG Logged In") 
+    console.info((new Date()).toISOString(),'TG Logged In') 
     return signedIn;
 }
 
@@ -84,26 +84,26 @@ async function init(cb) {
 tg.updates.on('updateShort', message => {
     const { update } = message;
     let json = {
-        id:"",
-        type:""
+        id:'',
+        type:''
     }
-    if(update._ === "updateUserStatus") {
+    if(update._ === 'updateUserStatus') {
         const { user_id } = update;
         let name = contacts.find(x => x.id == user_id).first_name;
         let id = contacts.find(x => x.id == user_id).phone;
-        if(update.status._ === "userStatusOnline"){
+        if(update.status._ === 'userStatusOnline'){
             json = {
                 id,
                 name,
-                type:"available"
+                type:'available'
             }
             logger.emit('user-presence-update',json)
         }
-        else if(update.status._ === "userStatusOffline"){
+        else if(update.status._ === 'userStatusOffline'){
             json = {
                 id,
                 name,
-                type:"unavailable"
+                type:'unavailable'
             }
             logger.emit('user-presence-update',json)
         }

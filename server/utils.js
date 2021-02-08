@@ -1,10 +1,10 @@
-const fs = require("fs");
+const fs = require('fs');
 const Database = require('better-sqlite3');
 const db2 = new Database('./data/deneme.db');
 const id_tag = require('./data/id_tag.json');
-var first = "./data/db.json";
-var second = "./data/data/db.json";
-var bkp = "./data/bkp/";
+var first = './data/db.json';
+var second = './data/data/db.json';
+var bkp = './data/bkp/';
 var files = [first, second];
 var db = undefined;
 function readDB(){
@@ -19,16 +19,16 @@ function readDB(){
 	  try {
 	        h++;
 	        console.log(file)
-	        db = fs.readFileSync(file, "utf-8");
+	        db = fs.readFileSync(file, 'utf-8');
 	        mtime = fs.statSync(file).mtimeMs;
 	        db = JSON.parse(db);
 
 	        if (db) {
-		    console.log(new Date(mtime).toLocaleString(), "tarihli dosya yüklendi.");
+		    console.log(new Date(mtime).toLocaleString(), 'tarihli dosya yüklendi.');
 	            break;
         	}
         }catch {
-        	console.error(h, ".DB Bozuk: Son kayıt ", new Date(mtime));
+        	console.error(h, '.DB Bozuk: Son kayıt ', new Date(mtime));
     	}
   }
 }
@@ -37,7 +37,7 @@ let deleteAt = -1;
 function addSession(usr) {
   deleteAt += 1;
   if (deleteAt == 5) {
-    console.log("Siliniyor..");
+    console.log('Siliniyor..');
     files = [];
     fs.readdirSync(bkp)
       .sort((a, b) => {
@@ -46,7 +46,7 @@ function addSession(usr) {
       .forEach((x) => files.push(bkp + x));
     files.slice(20).forEach((y) =>
       fs.unlink(y, (err) => {
-        err ? console.log(err) : console.log(y, "silindi");
+        err ? console.log(err) : console.log(y, 'silindi');
       })
     );
     deleteAt = 0;
@@ -56,20 +56,20 @@ function addSession(usr) {
   if (contact) {
     contact.sessions.push({ on: usr[1], off: usr[2], time: usr[2] - usr[1] });
   } else {
-    let u = { id: usr[0], tag: "bilinmiyor", name: usr[0], sessions: [] };
+    let u = { id: usr[0], tag: 'bilinmiyor', name: usr[0], sessions: [] };
     u.sessions.push({ on: usr[1], off: usr[2], time: usr[2] - usr[1] });
     db.push(u);
   }
   fs.copyFile(first, second, fs.constants.COPYFILE_FICLONE, (err) => {
-    err ? console.log(err) : console.log("DB copied");
+    err ? console.log(err) : console.log('DB copied');
   });
 
   fs.copyFile(
     first,
-    bkp + "db" + Date.now() + ".json",
+    bkp + 'db' + Date.now() + '.json',
     fs.constants.COPYFILE_EXCL,
     (err) => {
-      if (err) console.log("Error" + err);
+      if (err) console.log('Error' + err);
       //else console.log('Backed up')
     }
   );
@@ -77,7 +77,7 @@ function addSession(usr) {
   fs.writeFile(first, JSON.stringify(db), function (err) {
     if (err) console.log(err);
     else {
-      console.log("| -> Saved");
+      console.log('| -> Saved');
     }
   });
 
@@ -85,44 +85,44 @@ function addSession(usr) {
 }
 
 function checkTempJson() {
-  var temp = "./data/temp.json";
+  var temp = './data/temp.json';
   let users = [];
   if (fs.existsSync(temp)) {
     var file;
     try {
-      file = fs.readFileSync(temp, { encoding: "utf-8" });
+      file = fs.readFileSync(temp, { encoding: 'utf-8' });
       JSON.parse(file);
     } catch {
-      console.log("Dosya bozuk. Array yazılıyor...");
+      console.log('Dosya bozuk. Array yazılıyor...');
       fs.writeFileSync(temp, JSON.stringify([], null));
-      file = fs.readFileSync(temp, { encoding: "utf-8" });
+      file = fs.readFileSync(temp, { encoding: 'utf-8' });
     }
     if (JSON.parse(file).length) {
-      console.log("Eski kayıtlar bulundu. Geri yükleniyor...");
+      console.log('Eski kayıtlar bulundu. Geri yükleniyor...');
       users = JSON.parse(file);
-    } else console.log("Eski kayıt yok....");
+    } else console.log('Eski kayıt yok....');
   }
   
   return users;
 }
 
-const insert = db2.prepare("INSERT INTO sessions (user_id, user_tag, time_on, time_off, time_spent) VALUES (@id, @tag, @time_on, @time_off, @time_spent);");
+const insert = db2.prepare('INSERT INTO sessions (user_id, user_tag, time_on, time_off, time_spent) VALUES (@id, @tag, @time_on, @time_off, @time_spent);');
 function sessionLogger(json, users) {
   var num = json.id.substr(0, 12);
   var usr_found = users.find((elem) => elem[0] == num);
-  var not_in_users_but_online = !usr_found && json.type == "available";
-  var in_users_and_got_offline = usr_found && json.type == "unavailable";
+  var not_in_users_but_online = !usr_found && json.type == 'available';
+  var in_users_and_got_offline = usr_found && json.type == 'unavailable';
   if (not_in_users_but_online) {
     var usr = [num, Date.now()];
     users.push(usr);
-    console.log("-------|" + new Date().toLocaleString("tr") + "|--------");
+    console.log('-------|' + new Date().toLocaleString('tr') + '|--------');
     users.forEach((u) => {
       console.log(
-        "|| • " + u[0] + "\t||" + new Date(u[1]).toLocaleTimeString("tr")
+        '|| • ' + u[0] + '\t||' + new Date(u[1]).toLocaleTimeString('tr')
       );
     });
-    console.log("-------|" + users.length + "/" + 68 + "|--------");
-    fs.writeFileSync("./data/temp.json", JSON.stringify(users, null));
+    console.log('-------|' + users.length + '/' + 68 + '|--------');
+    fs.writeFileSync('./data/temp.json', JSON.stringify(users, null));
   }
 
   if (in_users_and_got_offline) {
@@ -143,37 +143,37 @@ function sessionLogger(json, users) {
     }
     insert.run(session)
     console.log(
-      "| × " + usr_found[0],
-      "||",
-      new Date(timespent).toLocaleTimeString("tr"),
-      "||",
-      new Date(usr_found[2]).toLocaleString("tr")
+      '| × ' + usr_found[0],
+      '||',
+      new Date(timespent).toLocaleTimeString('tr'),
+      '||',
+      new Date(usr_found[2]).toLocaleString('tr')
     );
-    fs.writeFileSync("./data/temp.json", JSON.stringify(users, null));
+    fs.writeFileSync('./data/temp.json', JSON.stringify(users, null));
 
     usr_found = undefined;
   }
-  if (json.type == "composing") console.log(usr_found[0], "yazıyor");
+  if (json.type == 'composing') console.log(usr_found[0], 'yazıyor');
 
   return users;
 }
 
 function tgSessionLogger(json,users) {
     var usr_found = users.find((elem) => elem[1] == json.id);
-    var not_in_users_but_online = !usr_found && json.type == "available";
-    var in_users_and_got_offline = usr_found && json.type == "unavailable";
+    var not_in_users_but_online = !usr_found && json.type == 'available';
+    var in_users_and_got_offline = usr_found && json.type == 'unavailable';
     if (not_in_users_but_online) {
       var usr = [json.name, json.id, Date.now()];
       users.push(usr);
-      console.log("TG-Logger");
-      console.log("-------|" + new Date().toLocaleString("tr") + "|--------");
+      console.log('TG-Logger');
+      console.log('-------|' + new Date().toLocaleString('tr') + '|--------');
       users.forEach((u) => {
       console.log(
-        "|| • " + u[0] + "\t||" + new Date(u[2]).toLocaleTimeString("tr")
+        '|| • ' + u[0] + '\t||' + new Date(u[2]).toLocaleTimeString('tr')
         );
       });
-      console.log("-------|" + users.length + "/" + 68 + "|--------");
-      console.log("TG-Logger");
+      console.log('-------|' + users.length + '/' + 68 + '|--------');
+      console.log('TG-Logger');
 
     }
 
@@ -195,11 +195,11 @@ function tgSessionLogger(json,users) {
       insert.run(session)
 
       console.log(
-        "| × " + json.name,
-        "||",
-        new Date(timespent).toLocaleTimeString("tr"),
-        "||",
-        new Date(usr_found[3]).toLocaleString("tr")
+        '| × ' + json.name,
+        '||',
+        new Date(timespent).toLocaleTimeString('tr'),
+        '||',
+        new Date(usr_found[3]).toLocaleString('tr')
       );
 
       usr_found = undefined;

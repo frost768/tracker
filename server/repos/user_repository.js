@@ -1,6 +1,6 @@
-const users = require("../data/names.json");
-const fs = require("fs");
-const { compareUsersDB } = require("./session_repository_sqlite");
+const users = require('../data/names.json');
+const fs = require('fs');
+const { compareUsersDB } = require('./session_repository_sqlite');
 function getUser({ id, name, tag }) {
   let filteredUsers = users;
   if (id || name || tag) filteredUsers = users.filter(x => x.id == id || x.name == name || x.tag == tag);
@@ -8,7 +8,7 @@ function getUser({ id, name, tag }) {
   else return filteredUsers;
 }
 
-const getOnlineUsers = () => JSON.parse(fs.readFileSync("./data/temp.json", { encoding: "utf-8" }));
+const getOnlineUsers = () => JSON.parse(fs.readFileSync('./data/temp.json', { encoding: 'utf-8' }));
 function compareTagee({ id, tag, min }) {
   let compared = [];
   users

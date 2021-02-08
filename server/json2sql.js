@@ -1,8 +1,8 @@
 const { writeFileSync } = require('fs');
-const Database = require("better-sqlite3");
-const db = new Database("./data/deneme.db");
-json_db = require("./data/db.json");
-console.log("Creating DB if it doesnt exist...");
+const Database = require('better-sqlite3');
+const db = new Database('./data/deneme.db');
+json_db = require('./data/db.json');
+console.log('Creating DB if it doesnt exist...');
 db.prepare('DROP TABLE IF EXISTS sessions;').run();
 db.prepare(`CREATE TABLE sessions 
         (
@@ -15,7 +15,7 @@ db.prepare(`CREATE TABLE sessions
         );`
 ).run();
 console.time('timer')
-console.log("Adding records to DB...")
+console.log('Adding records to DB...')
 json_db.forEach(user  => {
   let table = `INSERT INTO sessions 
   (
@@ -37,7 +37,7 @@ json_db.forEach(user  => {
   }
   db.prepare(table).run();
 });
-console.log("Done!!")
+console.log('Done!!')
 console.timeEnd('timer')
 let id_tag_db= db.prepare('SELECT user_id, user_tag from sessions group by user_id').all();
 var id_tag = {};

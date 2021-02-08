@@ -1,7 +1,7 @@
 import { 
     getUsers,
     getOnlineUsers 
-} from "../../services/api.service";
+} from '../../services/api.service';
 const state={
     users:[],
     online:[],
@@ -24,7 +24,7 @@ const mutations = {
     setUsers: (state,list) => (state.users = list),
     setOnlineList: (state,list) => (state.online = list),
     setOnline: (state,json) => {
-        if(json.type=="available") state.online.push([json.id.slice(0,12),new Date().toLocaleTimeString()])
+        if(json.type=='available') state.online.push([json.id.slice(0,12),new Date().toLocaleTimeString()])
         else {
             state.online.splice(state.online.findIndex(x=> x[0]==json.id.slice(0,12)),1)
         }

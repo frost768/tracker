@@ -34,7 +34,7 @@ function compareUsers({id1,id2}) {
     var begin, end, begin_sessions, end_sessions, encounter = [], convo_end = 0;
     let user1sessions= getUserSessions({id:id1});
     let user2sessions= getUserSessions({id:id2});
-    if(!user1sessions.length || !user2sessions.length) return { "convo_end": 0, "encounter": 0, "tt": 0 };
+    if(!user1sessions.length || !user2sessions.length) return { 'convo_end': 0, 'encounter': 0, 'tt': 0 };
     var usr1_first =user1sessions[0].on, usr2_first = user2sessions[0].on, 
     usr1_last = user1sessions[user1sessions.length - 1].off, 
     usr2_last = user2sessions[user2sessions.length - 1].off;
@@ -97,7 +97,7 @@ function compareUsers({id1,id2}) {
         _loop_2(i);
     }
     ;
-    return { "convo_end": convo_end, "encounter": encounter, "tt": encounter.reduce(function (a, b) { return a + b; }, 0) };
+    return { 'convo_end': convo_end, 'encounter': encounter, 'tt': encounter.reduce(function (a, b) { return a + b; }, 0) };
 
 }
 

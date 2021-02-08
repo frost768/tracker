@@ -1,4 +1,4 @@
-import { request } from "./httpClient";
+import { request } from './httpClient';
 
 export function getUsers(user){
     return request('/api/user',user)

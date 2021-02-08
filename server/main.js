@@ -3,12 +3,12 @@ const { wa, sendRequest }  = require('./wa.js');
 const { readDB, checkTempJson, sessionLogger, tgSessionLogger }  = require('./utils.js');
 
 // --------------- WEBSOCKET -------------------
-const WebSocket = require("ws");
-const { EventEmitter } = require("events");
+const WebSocket = require('ws');
+const { EventEmitter } = require('events');
 const wss = new WebSocket.Server({ port: 8081 });
 let a = new EventEmitter();
-wss.on("connection", (socket, req) => {
-  a.on("send", (args) => {
+wss.on('connection', (socket, req) => {
+  a.on('send', (args) => {
     socket.send(JSON.stringify(args));
   });
   
@@ -28,9 +28,9 @@ async function main() {
     await sendRequest();
  // })
 
-  wa.on("user-presence-update", json => {
+  wa.on('user-presence-update', json => {
     users = sessionLogger(json, users);
-    a.emit("send", json);
+    a.emit('send', json);
   });
 
   logger.on('user-presence-update', json => {
