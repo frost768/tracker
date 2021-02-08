@@ -1,6 +1,6 @@
 process.on('message',({ request, endpointKey }) => {
     if (endpointKey == 'COMPARE_USERS') {
-        const result = compareUsersDB(request);
+        const result = compareUsers(request);
         process.send(result);
     }
     else if (endpointKey == 'COMPARE_USER_TAGEE') {
@@ -8,5 +8,5 @@ process.on('message',({ request, endpointKey }) => {
         process.send(result);
     }
 })
-const { compareUsersDB } = require('./repos/session_repository_sqlite');
+const { compareUsers } = require('./services/Analysis');
 const { compareTagee } = require('./repos/user_repository');
