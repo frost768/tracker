@@ -1,4 +1,4 @@
-const { endpoints }= require('./endpoints.js');
+const { endpoints } = require('./endpoints.js');
 const { fork } = require('child_process');
 
 function controller(endpoint, request, callback) {

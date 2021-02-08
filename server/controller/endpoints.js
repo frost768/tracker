@@ -1,24 +1,19 @@
-// const {
-//     getUserSessions,
-//     getUserSessionsAnalysis,
-//     getAllTimeSpent,
-//     mostActiveUsers,
-//     compareUsers,
-//     getUserLast24Hour
-// } = require('../repos/session_repository.js')
-
 const { 
     getUser,
     getOnlineUsers
 } = require('../repos/user_repository.js')
 
 const {
-    getAllTimeSpentDB,
-    getUserSessionsDB,
-    mostActiveUsersDB,
-    getUserLast24HourDB,
-    getUserSessionsAnalysisDB,
-} = require('../repos/session_repository_sqlite.js')
+    analyze,
+    totalTimeSpent,
+    getUserUsagePercent,
+    getUserLongestSession,
+    getUserTimeFrequency,
+    getUserDailyUsage,
+    getUserSessions,
+    mostActiveUsers,
+    dailyUsage,
+} = require('../services/Analysis');
 
 const api = '/api/';
 const sessions = 'sessions';
@@ -27,29 +22,50 @@ const online = 'online';
 const statistics = 'statistics';
 
 const endpoints = {
-    USER_LAST24HOUR: { 
-        action: id => getUserLast24HourDB(id),
-        url: api + user + '/' + 'last24'
+    // ANALYSIS
+    USER_SESSIONS:{ 
+        action: query => getUserSessions(query),
+        url: api + sessions 
     },
 
     USER_STATISTICS: { 
-        action: id => getUserSessionsAnalysisDB(id),
+        action: id => analyze(id),
         url: api + user + '/'+ statistics
     },
 
+    USER_USAGE_PERCENT: { 
+        action: id => getUserUsagePercent(id),
+        url: api + user + '/' + 'usage-percent'
+    },
+
+    USER_LONGEST_SESSION: { 
+        action: id => getUserLongestSession(id),
+        url: api + user + '/' + 'longest'
+    },
+
+    USER_TIME_FREQ: { 
+        action: id => getUserTimeFrequency(id),
+        url: api + user + '/' + 'time-freq'
+    },
+
+    USER_DAILY: { 
+        action: id => getUserDailyUsage(id),
+        url: api + user + '/' + 'daily'
+    },
+
     ALL_TIME_SPENT : {
-        action: () => getAllTimeSpentDB(),
-        url: api + statistics
+        action: () => totalTimeSpent(),
+        url: api + 'all/total-time'
+    },
+
+    ALL_DAILY_USAGE : {
+        action: () => dailyUsage(),
+        url: api + 'all/daily'
     },
 
     MOST_ACTIVE_USERS:{
-        action: () => mostActiveUsersDB(),
+        action: () => mostActiveUsers(),
         url: api + 'mostactive'
-    },
-    
-    USER_SESSIONS:{ 
-        action: query => getUserSessionsDB(query),
-        url: api + sessions 
     },
 
     COMPARE_USERS:{ 
@@ -60,6 +76,7 @@ const endpoints = {
         url: api + user + '/compare/tagee'
     },
 
+    // USER REPOSITORY
     USER: { 
         action: user => getUser(user),
         url: api + user 
@@ -69,35 +86,6 @@ const endpoints = {
         action:() => getOnlineUsers(),
         url: api + user + '/' + online
     },
-
-    // COMPARE_USERS:{ 
-    //     action: (users) => compareUsers(users),
-    //     url: api + sessions + '/compare'
-    // },
-    // USER_SESSIONS:{ 
-    //     action: user => getUserSessions(user),
-    //     url: api + sessions 
-    // },
- 
-    // USER_LAST24HOUR: { 
-    //     action:(user) => getUserLast24Hour(user),
-    //     url: api + user + '/' + 'last24'
-    // },
-
-    // USER_STATISTICS: { 
-    //     action: (user) => getUserSessionsAnalysis(user),
-    //     url: api + user + '/'+ statistics
-    // },
-
-    // ALL_TIME_SPENT : {
-    //     action: () => getAllTimeSpent(),
-    //     url: api + statistics
-    // },
-
-    // MOST_ACTIVE_USERS:{
-    //     action: () => mostActiveUsers(),
-    //     url: api + 'mostactive'
-    // },
 
     NOT_FOUND:{
         action: (path) =>  '404 NOT FOUND: ' + path,
