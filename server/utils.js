@@ -147,7 +147,7 @@ function sessionLogger(json, users) {
     console.log(
       '| × ' + usr_found[0],
       '||',
-      new Date(timespent).toLocaleTimeString('tr'),
+      new Date(time_spent).toLocaleTimeString('tr'),
       '||',
       new Date(usr_found[2]).toLocaleString('tr')
     );
