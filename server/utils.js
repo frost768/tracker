@@ -1,12 +1,15 @@
 const fs = require('fs');
 const Database = require('better-sqlite3');
-const db2 = new Database('./data/deneme.db');
+const dbsql = new Database('./data/deneme.db');
 const id_tag = require('./data/id_tag.json');
 var first = './data/db.json';
 var second = './data/data/db.json';
 var bkp = './data/bkp/';
 var files = [first, second];
 var db = undefined;
+function check(params) {
+  
+}
 function readDB(){
   var mtime = 0;
 	fs.readdirSync(bkp).sort((a, b) => 
@@ -43,8 +46,8 @@ function addSession(usr) {
       .sort((a, b) => {
         return fs.statSync(bkp + b).mtimeMs - fs.statSync(bkp + a).mtimeMs;
       })
-      .forEach((x) => files.push(bkp + x));
-    files.slice(20).forEach((y) =>
+      .forEach(x => files.push(bkp + x));
+    files.slice(20).forEach(y =>
       fs.unlink(y, (err) => {
         err ? console.log(err) : console.log(y, 'silindi');
       })
@@ -52,7 +55,7 @@ function addSession(usr) {
     deleteAt = 0;
   }
 
-  let contact = db.find((a) => a.id == usr[0]);
+  let contact = db.find(a => a.id == usr[0]);
   if (contact) {
     contact.sessions.push({ on: usr[1], off: usr[2], time: usr[2] - usr[1] });
   } else {
@@ -106,17 +109,17 @@ function checkTempJson() {
   return users;
 }
 
-const insert = db2.prepare('INSERT INTO sessions (user_id, user_tag, time_on, time_off, time_spent) VALUES (@id, @tag, @time_on, @time_off, @time_spent);');
+const insert = dbsql.prepare('INSERT INTO sessions (user_id, user_tag, time_on, time_off, time_spent) VALUES (@id, @tag, @time_on, @time_off, @time_spent);');
 function sessionLogger(json, users) {
   var num = json.id.substr(0, 12);
-  var usr_found = users.find((elem) => elem[0] == num);
+  var usr_found = users.find(x => x[0] == num);
   var not_in_users_but_online = !usr_found && json.type == 'available';
   var in_users_and_got_offline = usr_found && json.type == 'unavailable';
   if (not_in_users_but_online) {
     var usr = [num, Date.now()];
     users.push(usr);
     console.log('-------|' + new Date().toLocaleString('tr') + '|--------');
-    users.forEach((u) => {
+    users.forEach(u => {
       console.log(
         '|| • ' + u[0] + '\t||' + new Date(u[1]).toLocaleTimeString('tr')
       );
@@ -127,7 +130,7 @@ function sessionLogger(json, users) {
 
   if (in_users_and_got_offline) {
     // Update users[] array
-    users = users.filter((elem) => elem[0] != usr_found[0]);
+    users = users.filter(x => x[0] != usr_found[0]);
 
     // Add offline time
     usr_found.push(Date.now());
@@ -158,8 +161,9 @@ function sessionLogger(json, users) {
   return users;
 }
 
+const insertTG = dbsql.prepare('INSERT INTO tg_sessions (user_id, user_tag, time_on, time_off, time_spent) VALUES (@id, @tag, @time_on, @time_off, @time_spent);');
 function tgSessionLogger(json,users) {
-    var usr_found = users.find((elem) => elem[1] == json.id);
+    var usr_found = users.find(x => x[1] == json.id);
     var not_in_users_but_online = !usr_found && json.type == 'available';
     var in_users_and_got_offline = usr_found && json.type == 'unavailable';
     if (not_in_users_but_online) {
@@ -167,44 +171,44 @@ function tgSessionLogger(json,users) {
       users.push(usr);
       console.log('TG-Logger');
       console.log('-------|' + new Date().toLocaleString('tr') + '|--------');
-      users.forEach((u) => {
+      users.forEach(u => {
       console.log(
         '|| • ' + u[0] + '\t||' + new Date(u[2]).toLocaleTimeString('tr')
         );
       });
       console.log('-------|' + users.length + '/' + 68 + '|--------');
       console.log('TG-Logger');
-
     }
 
     if (in_users_and_got_offline) {
       // Update users[] array
-      users = users.filter((elem) => elem[1] != usr_found[1]);
+      users = users.filter(x => x[1] != usr_found[1]);
 
       // Add offline time
       usr_found.push(Date.now());
-      let timespent = usr_found[3] - usr_found[2]
+      let time_spent = usr_found[3] - usr_found[2]
       // Add session to DB and return timespent formatted
       let session = {
         id: usr_found[1].toString(), 
-        tag: id_tag[usr_found[1]],
+        tag: json.tag,
         time_on: usr_found[2], 
         time_off: usr_found[3],
-        time_spent: timespent
+        time_spent
       }
-      insert.run(session)
+
+      insertTG.run(session)
 
       console.log(
         '| × ' + json.name,
         '||',
-        new Date(timespent).toLocaleTimeString('tr'),
+        new Date(time_spent).toLocaleTimeString('tr'),
         '||',
         new Date(usr_found[3]).toLocaleString('tr')
       );
 
       usr_found = undefined;
-      return users;
     }
+    return users;
 }
 
 module.exports = {
