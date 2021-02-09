@@ -1,5 +1,5 @@
-const Database = require("better-sqlite3");
-const db = new Database("./data/deneme.db",{ readonly:true });
+const Database = require('better-sqlite3');
+const db = new Database('./data/deneme.db', { readonly: true });
 function analyze(id) {
   return {
     totalTime: getUserTotalTime(id),
@@ -62,23 +62,23 @@ function compareUsers({ id1, id2, min }) {
         u2.time_on < u1.time_on && u2_left_in_u1_time;
       // let u2_entered_before_u1 = !u2_entered_in_u1_time && u2.time_on < u1.time_on;
       // let U1JoinAndU2LeavesBefore = u2_entered_before_u1 && (u1.time_on < u2.time_off && u1.time_on > u2.time_on);
-      const u1date = new Date(u1.time_on).toLocaleString("tr");
-      const u2date = new Date(u2.time_off).toLocaleString("tr");
+      const u1date = new Date(u1.time_on).toLocaleString('tr');
+      const u2date = new Date(u2.time_off).toLocaleString('tr');
       const day = { u1date, u2date };
 
       if (u2_in_u1) {
         const time = parseInt(u2.time_spent / 1000);
-        if (time < MINIMUM_MINUTE) return;
+        if (time <= MINIMUM_MINUTE) return;
         encounter.push({ day, time });
       }
       if (u2_left_after_u1) {
         const time = parseInt((u1.time_off - u2.time_on) / 1000);
-        if (time < MINIMUM_MINUTE) return;
+        if (time <= MINIMUM_MINUTE) return;
         encounter.push({ day, time });
       }
       if (u2_entered_and_left_first) {
         const time = parseInt((u2.time_off - u1.time_on) / 1000);
-        if (time < MINIMUM_MINUTE) return;
+        if (time <= MINIMUM_MINUTE) return;
         encounter.push({ day, time });
       }
     });
@@ -113,9 +113,9 @@ function compareUsersSQL({ id1, id2, min }) {
     u2_left_after_u1 += ` AND time > ${min};`;
     u2_entered_and_left_first += ` AND time > ${min};`;
   } else {
-    u2_in_u1 += ";";
-    u2_left_after_u1 += ";";
-    u2_entered_and_left_first += ";";
+    u2_in_u1 += ';';
+    u2_left_after_u1 += ';';
+    u2_entered_and_left_first += ';';
   }
 
   db.prepare(temp_u1).run();
@@ -190,7 +190,7 @@ function getUserDailyUsage({ id }) {
 }
 
 function totalTimeSpent() {
-  return db.prepare("SELECT SUM(time_spent) FROM sessions").pluck().get();
+  return db.prepare('SELECT SUM(time_spent) FROM sessions').pluck().get();
 }
 
 function dailyUsage() {
@@ -208,7 +208,7 @@ function dailyUsage() {
 function mostActiveUsers() {
   return db
     .prepare(
-      "SELECT user_id AS id, SUM(time_spent) AS tt FROM sessions GROUP BY id ORDER BY tt DESC LIMIT 5"
+      'SELECT user_id AS id, SUM(time_spent) AS tt FROM sessions GROUP BY id ORDER BY tt DESC LIMIT 5'
     )
     .all();
 }

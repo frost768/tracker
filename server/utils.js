@@ -7,9 +7,7 @@ var second = './data/data/db.json';
 var bkp = './data/bkp/';
 var files = [first, second];
 var db = undefined;
-function check(params) {
-  
-}
+
 function readDB(){
   var mtime = 0;
 	fs.readdirSync(bkp).sort((a, b) => 
@@ -111,10 +109,11 @@ function checkTempJson() {
 
 const insert = dbsql.prepare('INSERT INTO sessions (user_id, user_tag, time_on, time_off, time_spent) VALUES (@id, @tag, @time_on, @time_off, @time_spent);');
 function sessionLogger(json, users) {
-  var num = json.id.substr(0, 12);
+  const { id, type } = json;
+  var num = id.substr(0, 12);
   var usr_found = users.find(x => x[0] == num);
-  var not_in_users_but_online = !usr_found && json.type == 'available';
-  var in_users_and_got_offline = usr_found && json.type == 'unavailable';
+  var not_in_users_but_online = !usr_found && type == 'available';
+  var in_users_and_got_offline = usr_found && type == 'unavailable';
   if (not_in_users_but_online) {
     var usr = [num, Date.now()];
     users.push(usr);
@@ -136,13 +135,13 @@ function sessionLogger(json, users) {
     usr_found.push(Date.now());
 
     // Add session to DB and return timespent formatted
-    let timespent = addSession(usr_found);
+    let time_spent = addSession(usr_found);
     let session = {
       id: usr_found[0].toString(), 
       tag: id_tag[usr_found[0]],
       time_on: usr_found[1], 
       time_off: usr_found[2],
-      time_spent: timespent
+      time_spent
     }
     insert.run(session)
     console.log(
@@ -156,18 +155,19 @@ function sessionLogger(json, users) {
 
     usr_found = undefined;
   }
-  if (json.type == 'composing') console.log(usr_found[0], 'yazıyor');
+  if (type == 'composing') console.log(usr_found[0], 'yazıyor');
 
   return users;
 }
 
 const insertTG = dbsql.prepare('INSERT INTO tg_sessions (user_id, user_tag, time_on, time_off, time_spent) VALUES (@id, @tag, @time_on, @time_off, @time_spent);');
-function tgSessionLogger(json,users) {
-    var usr_found = users.find(x => x[1] == json.id);
-    var not_in_users_but_online = !usr_found && json.type == 'available';
-    var in_users_and_got_offline = usr_found && json.type == 'unavailable';
+function tgSessionLogger(json, users) {
+    const { id, tag, name, type } = json;
+    var usr_found = users.find(x => x[1] == id);
+    var not_in_users_but_online = !usr_found && type == 'available';
+    var in_users_and_got_offline = usr_found && type == 'unavailable';
     if (not_in_users_but_online) {
-      var usr = [json.name, json.id, Date.now()];
+      var usr = [name, id, Date.now()];
       users.push(usr);
       console.log('TG-Logger');
       console.log('-------|' + new Date().toLocaleString('tr') + '|--------');
@@ -190,12 +190,11 @@ function tgSessionLogger(json,users) {
       // Add session to DB and return timespent formatted
       let session = {
         id: usr_found[1].toString(), 
-        tag: json.tag,
+        tag,
         time_on: usr_found[2], 
         time_off: usr_found[3],
         time_spent
       }
-
       insertTG.run(session)
 
       console.log(
@@ -208,6 +207,7 @@ function tgSessionLogger(json,users) {
 
       usr_found = undefined;
     }
+
     return users;
 }
 

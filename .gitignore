@@ -123,3 +123,4 @@ app/dist
 **/data
 **/*.env
 
+**/.editorconfig

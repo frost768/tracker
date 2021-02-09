@@ -55,6 +55,18 @@
             </v-col>
           </v-list-item>
         </v-card>
+        <v-card class="mx-auto my-12" max-width="800">
+          <v-card-title >Dakika Sıklıkları</v-card-title>
+          <chart :type="'line'" :options="options2" :series="series2"></chart>
+          <!-- <v-sparkline
+            color="#fcad03"
+            smooth="30"
+            fill="fill"
+            :value="minuteFreq.freqs"
+            :labels="minuteFreq.i"
+            auto-draw
+          ></v-sparkline> -->
+        </v-card>
       </v-col>
       
     </v-row>
@@ -62,10 +74,13 @@
 </template>
 
 <script>
-
-import { getTotalTimeSpent, mostActiveUsers } from "../services/api.service";
+import Chart from "../components/Chart";
+import { getTotalTimeSpent, mostActiveUsers, allDaily } from "../services/api.service";
 export default {
   name: "DashBoard",
+  components: {
+    Chart
+  },
   props: {},
   computed: {},
 
@@ -75,12 +90,30 @@ export default {
       totalTime: 0,
       mostActiveUsers: [],
       labels: [],
+      daily: [],
+      options2 : {
+        chart: {
+          type: 'line'
+        },
+
+        xaxis: {
+          categories: []
+        }
+      },
+      series2: [{
+        name: 'sales',
+        data: []
+      }],
     };
   },
   methods: {
     getTotal: async function a() {
       let tt = await getTotalTimeSpent();
       this.totalTime = tt / 1000;
+      let tt2 = await allDaily();
+      this.daily = tt2;
+      this.options2.xaxis.categories = this.daily.map(x=> x.day)
+      this.series2 = [{data: tt2.map(x=> x.tt)}]
     },
     mostActive: async function b() {
       let mostActive = await mostActiveUsers();

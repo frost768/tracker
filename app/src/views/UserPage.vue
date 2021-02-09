@@ -17,6 +17,7 @@
           <v-card-subtitle v-else>Son görülme: {{ user.times }}</v-card-subtitle>
           <v-card-subtitle>
             En uzun oturum: {{ Math.floor(longestSession / 60) }} dakika <br>
+            {{ longestSessionDay }}
             Toplam harcanan zaman:
             <v-chip :color="Math.floor(totalTimeSpent / 3600) > 300 ? 'red' : 'green'">{{ Math.floor(totalTimeSpent / 3600) }}</v-chip> saat <br>
             Kullanım yüzdesi: % {{ Math.floor(usagePercent) }}
@@ -96,7 +97,7 @@
               indeterminate
             ></v-progress-linear>
           </template>
-          <chart :type="'bar'" :options="options" :series="series"></chart>
+          <chart :type="'bar'" :options="options2" :series="series2"></chart>
           <!-- <v-sparkline
             color="#fcad03"
             smooth="30"
@@ -158,7 +159,34 @@
           ></v-slider>
         </v-card>
       </v-col>
-
+      <v-col>
+        <v-card>
+          <v-card-title v-if="user">Times Kullanım</v-card-title>
+          <template slot="progress">
+            <v-progress-linear
+              color="green"
+              height="10"
+              indeterminate
+            ></v-progress-linear>
+          </template>
+          <chart type="line" :options="options3" :series="series3"></chart>
+          <!-- <v-sparkline
+            color="#fcad03"
+            smooth="30"
+            fill="fill"
+            :value="last24.daily"
+            :labels="last24.i"
+            auto-draw
+          ></v-sparkline> -->
+          <v-slider
+            v-model="lastN"
+            @change="setlastN"
+            min="5"
+            thumb-label
+          ></v-slider>
+        </v-card>
+      </v-col>
+      
     </v-row>
   </div>
 </template>
@@ -190,7 +218,43 @@ export default {
           categories: []
         }
       }, 
+      options2 : {
+        chart: {
+          type: 'line'
+        },
+
+        xaxis: {
+          categories: []
+        }
+      },
+      options3 : {
+        chart: {
+          type: 'line'
+        },
+        stroke: {
+    show: true,
+    curve: 'smooth',
+    lineCap: 'round',
+    colors: undefined,
+    width: 2,
+    dashArray: 0,      
+},sparkline: {
+            enabled: true
+          },
+
+        xaxis: {
+          categories: []
+        }
+      },
       series: [{
+        name: 'sales',
+        data: []
+      }],
+      series2: [{
+        name: 'sales',
+        data: []
+      }],
+      series3: [{
         name: 'sales',
         data: []
       }],
@@ -216,6 +280,7 @@ export default {
       minuteFreq: { freqs: [], i: [] },
       last24: { daily: [], i: [] },
       longestSession: 0,
+      longestSessionDay: 0,
       totalTimeSpent: 0,
       usagePercent: 0,
       lastN: 10,
@@ -250,27 +315,34 @@ export default {
 
     async fetchAnalysis() {
       const res = await getUserSessionsAnalysis({ id: this.$route.params.id });
-      this.hourFreq.i = res.hourFreq.map((x) => x.i);
-      this.hourFreq.freqs = res.hourFreq.map((x) => x.hourfreq);
+      this.hourFreq.i = res.timeFrequency.hours_result.map((x) => x.hour);
+      this.hourFreq.freqs = res.timeFrequency.hours_result.map((x) => x.frequency);
 
       this.options.xaxis.categories = this.hourFreq.i;
       this.series = [{data: this.hourFreq.freqs }];
+      console.log(this.options);
 
-      this.minuteFreq.i = res.minuteFreq.map((x) => x.i);
-      this.minuteFreq.freqs = res.minuteFreq.map((x) => x.minfreq);
+      this.minuteFreq.i = res.timeFrequency.minutes_result.map((x) => x.minute);
+      this.minuteFreq.freqs = res.timeFrequency.minutes_result.map((x) => x.frequency);
 
-      this.last24Backup = res.lastNday;
-      this.last24.i = res.lastNday
-        .map((x) => x.i)
-        .slice(res.lastNday.length - this.lastN, res.lastNday.length);
-      this.last24.daily = res.lastNday
-        .map((x) => x.daily)
+      this.options2.xaxis.categories = this.minuteFreq.i;
+      this.series2 = [{data: this.minuteFreq.freqs }];
+      this.last24Backup = res.dailyUsage;
+      this.last24.i = res.dailyUsage
+        .map((x) => x.day)
+        .slice(res.dailyUsage.length - this.lastN, res.dailyUsage.length);
+      this.last24.daily = res.dailyUsage
+        .map((x) => x.tt)
         //.slice(res.lastNday.length - this.lastN, res.lastNday.length);
       
       this.last24Chart.series = [{ data:  this.last24.daily }]
 
-      this.longestSession = res.longestSession / 1000;
-      this.totalTimeSpent = res.totalTimeSpent / 1000;
+      this.options3.xaxis.categories = res.timeFrequency.times_result.map(x=> x.time);
+      this.series3 = [{data:res.timeFrequency.times_result.map(x=> x.frequency)}];
+
+      this.longestSession = res.longestSession.duration / 1000;
+      this.longestSessionDay = res.longestSession.day;
+      this.totalTimeSpent = res.totalTime / 1000;
       this.usagePercent = res.usagePercent;
       this.loaded = false;
     },
