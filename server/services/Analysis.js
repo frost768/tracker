@@ -1,5 +1,5 @@
 const Database = require("better-sqlite3");
-const db = new Database("./data/deneme.db");
+const db = new Database("./data/deneme.db",{ readonly:true });
 function analyze(id) {
   return {
     totalTime: getUserTotalTime(id),
@@ -41,8 +41,8 @@ function compareUsers({ id1, id2, min }) {
     end_sessions = u2s.filter((x) => x.time_on < end && x.time_off > begin);
   }
 
-  //begin_sessions = u1s;
-  //end_sessions = u2s;
+  begin_sessions = u1s;
+  end_sessions = u2s;
 
   for (var i = 0; i < begin_sessions.length; i++) {
     const u1 = begin_sessions[i];
@@ -167,9 +167,9 @@ function getUserLongestSession({ id }) {
 }
 
 function getUserTimeFrequency({ id }) {
-  const hours = `SELECT count(*)   AS frequency, STRFTIME('%H',time_on / 1000, 'unixepoch', 'localtime')    AS hour   FROM sessions WHERE user_id = ${id} GROUP BY hour   ORDER BY frequency DESC;`;
-  const minutes = `SELECT count(*) AS frequency, STRFTIME('%M',time_on / 1000, 'unixepoch', 'localtime')    AS minute FROM sessions WHERE user_id = ${id} GROUP BY minute ORDER BY frequency DESC;`;
-  const times = `SELECT count(*)   AS frequency, STRFTIME('%H:%M',time_on / 1000, 'unixepoch', 'localtime') AS time   FROM sessions WHERE user_id = ${id} GROUP BY time   ORDER BY frequency DESC;`;
+  const hours = `SELECT count(*)   AS frequency, STRFTIME('%H',time_on / 1000, 'unixepoch', 'localtime')    AS hour   FROM sessions WHERE user_id = ${id} GROUP BY hour  ;`;
+  const minutes = `SELECT count(*) AS frequency, STRFTIME('%M',time_on / 1000, 'unixepoch', 'localtime')    AS minute FROM sessions WHERE user_id = ${id} GROUP BY minute;`;
+  const times = `SELECT count(*)   AS frequency, STRFTIME('%H:%M',time_on / 1000, 'unixepoch', 'localtime') AS time   FROM sessions WHERE user_id = ${id} GROUP BY time  ;`;
   const hours_result = db.prepare(hours).all();
   const minutes_result = db.prepare(minutes).all();
   const times_result = db.prepare(times).all();

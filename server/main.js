@@ -18,8 +18,8 @@ wss.on('connection', (socket, req) => {
 });
 // ---------------------------------------------
 
-var users = [];
-var tg_users = [];
+let users = [];
+let tg_users = [];
 async function main() {
   //init(async ()=>{
     readDB()
