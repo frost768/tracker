@@ -9,10 +9,9 @@ const {
     getUserUsagePercent,
     getUserLongestSession,
     getUserTimeFrequency,
-    getUserDailyUsage,
+    getDailyUsage,
     getUserSessions,
     mostActiveUsers,
-    dailyUsage,
 } = require('../services/Analysis');
 
 const api = '/api/';
@@ -49,7 +48,7 @@ const endpoints = {
     },
 
     USER_DAILY: { 
-        action: id => getUserDailyUsage(id),
+        action: id => getDailyUsage(id),
         url: api + user + '/' + 'daily'
     },
 
@@ -59,7 +58,7 @@ const endpoints = {
     },
 
     ALL_DAILY_USAGE : {
-        action: () => dailyUsage(),
+        action: () => getDailyUsage(),
         url: api + 'all/daily'
     },
 

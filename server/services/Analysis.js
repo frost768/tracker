@@ -6,12 +6,19 @@ function analyze(id) {
     usagePercent: getUserUsagePercent(id),
     longestSession: getUserLongestSession(id),
     timeFrequency: getUserTimeFrequency(id),
-    dailyUsage: getUserDailyUsage(id),
+    dailyUsage: getDailyUsage(id),
   };
 }
 
-function compareUsers({ id1, id2, min }) {
-  if (!min) min = 0;
+/**
+ * @param {Object} query - Query for comparing
+ * @param {number} query.id1 - First user to be compared
+ * @param {number} query.id2 - Second user to be compared
+ * @param {number} [query.min] - Take less then this minutes into account
+ * @returns {Comparison[]} Comparison of the users' sessions
+ */
+function compareUsers(query) {
+  const { id1, id2, min = 0 } = query;
   const MINIMUM_MINUTE = min * 60;
   let begin,
     end,
@@ -132,22 +139,48 @@ function compareUsersSQL({ id1, id2, min }) {
   ];
 }
 
-function getUserSessions({ id, name, from, to }) {
+/**
+ * @param {Object} query - Query for the sessions
+ * @param {number} query.id - User id
+ * @param {Date|string} [query.from] - From this date
+ * @param {Date|string} [query.to]  - To this date
+ * @param {number} [query.minute_limit] -  Lower limit for spent time
+ * @returns {Session[]} Sessions of a user
+ */
+function getUserSessions(query) {
+  let { id, from, to, minute_limit } = query;
   from = Date.parse(from);
   to = Date.parse(to);
-  let query = `SELECT time_on, time_off, time_spent FROM sessions WHERE user_id = ${id}`;
-  if (from) query += ` AND time_on > ${from}`;
-  if (to) query += ` AND time_on < ${to}`;
-  return db.prepare(query).all();
+  let sql_query = `SELECT time_on, time_off, (time_spent / 1000) as time_spent FROM sessions WHERE user_id = ${id}`;
+  if (from) sql_query += ` AND time_on > ${from}`;
+  if (to) sql_query += ` AND time_on < ${to}`;
+  if (minute_limit) sql_query += ` AND time_spent > ${minute_limit} * 60`
+  return db.prepare(sql_query).all();
 }
 
+/** 
+ * Returns user's total time spent in seconds
+ * @param {Object} id
+ * @param {number} id.id
+ * @returns {number} tt
+ */
 function getUserTotalTime({ id }) {
   return db
-    .prepare(`SELECT SUM(time_spent) AS tt FROM sessions WHERE user_id = ${id}`)
+    .prepare(`SELECT SUM(time_spent / 1000) AS tt FROM sessions WHERE user_id = ${id}`)
     .pluck()
     .get();
 }
 
+/** 
+ * Returns usage percentage of a user 
+ * 
+ * Calculated as total time divided by first session subtracted from last one
+ * 
+ * total_time / (last_session - first_session)
+ * @param {Object} id
+ * @param {number} id.id
+ * @returns {number} percent
+ */
 function getUserUsagePercent({ id }) {
   return db
     .prepare(
@@ -158,57 +191,71 @@ function getUserUsagePercent({ id }) {
     .get();
 }
 
+/**
+ * @param {Object} id User object
+ * @param {number} id.id User id
+ * @returns {{day:string,duration:number}} The day and duration of user's longest session
+ */
 function getUserLongestSession({ id }) {
   return db
     .prepare(
-      `SELECT DATETIME(time_on / 1000, 'unixepoch','localtime') AS day, MAX(time_spent) AS duration FROM sessions WHERE user_id = ${id}`
+      `SELECT DATETIME(time_on / 1000, 'unixepoch','localtime') AS day, MAX(time_spent / 1000) AS duration FROM sessions WHERE user_id = ${id}`
     )
     .get();
 }
 
+/** 
+ * Returns frequencies of hours, minutes and time (H:m)
+ * @param {Object} id
+ * @param {number} id.id
+ * @returns {Frequency} result
+ */
 function getUserTimeFrequency({ id }) {
   const hours = `SELECT count(*)   AS frequency, STRFTIME('%H',time_on / 1000, 'unixepoch', 'localtime')    AS hour   FROM sessions WHERE user_id = ${id} GROUP BY hour  ;`;
   const minutes = `SELECT count(*) AS frequency, STRFTIME('%M',time_on / 1000, 'unixepoch', 'localtime')    AS minute FROM sessions WHERE user_id = ${id} GROUP BY minute;`;
   const times = `SELECT count(*)   AS frequency, STRFTIME('%H:%M',time_on / 1000, 'unixepoch', 'localtime') AS time   FROM sessions WHERE user_id = ${id} GROUP BY time  ;`;
-  const hours_result = db.prepare(hours).all();
-  const minutes_result = db.prepare(minutes).all();
-  const times_result = db.prepare(times).all();
-  return { hours_result, minutes_result, times_result };
+  const hour_frequencies = db.prepare(hours).all();
+  const minute_frequencies = db.prepare(minutes).all();
+  const time_frequencies = db.prepare(times).all();
+  return { hour_frequencies, minute_frequencies, time_frequencies };
 }
 
-function getUserDailyUsage({ id }) {
+/** 
+ * Returns daily usages of a user
+ * @param {Object} id
+ * @param {number} id.id
+ * @returns {DailyUsage[]} Statistics of every day
+ */
+function getDailyUsage(id) {
+  let query = 
+  `SELECT
+    AVG(time_spent / 1000) AS avg,
+    COUNT(*) AS times,
+    SUM(time_spent / 1000) AS tt,
+    DATE(time_on / 1000, 'unixepoch', 'localtime') AS day
+    FROM sessions`
+    if(id) query += ` WHERE user_id = ${id.id}`
+    query += ' GROUP BY day;'
   return db
-    .prepare(
-      `SELECT
-      SUM(time_spent) AS tt,
-      DATE(time_on / 1000, 'unixepoch', 'localtime') AS day
-      FROM sessions
-      WHERE user_id = ${id}
-      GROUP BY day;`
-    )
+    .prepare(query)
     .all();
 }
-
+/** 
+ * Returns total time spent in seconds
+ * @returns {number}
+ */
 function totalTimeSpent() {
-  return db.prepare('SELECT SUM(time_spent) FROM sessions').pluck().get();
+  return db.prepare('SELECT SUM(time_spent / 1000) FROM sessions').pluck().get();
 }
 
-function dailyUsage() {
-  return db
-    .prepare(
-      `SELECT
-      SUM(time_spent) AS tt,
-      DATE(time_on / 1000, 'unixepoch', 'localtime') AS day
-      FROM sessions
-      GROUP BY day;`
-    )
-    .all();
-}
-
+/** 
+ * Returns five most active users by their spent time in seconds in descending order
+ * @returns {{ id:number, tt:number }[]}
+ */
 function mostActiveUsers() {
   return db
     .prepare(
-      'SELECT user_id AS id, SUM(time_spent) AS tt FROM sessions GROUP BY id ORDER BY tt DESC LIMIT 5'
+      'SELECT user_id AS id, SUM(time_spent / 1000) AS tt FROM sessions GROUP BY id ORDER BY tt DESC LIMIT 5'
     )
     .all();
 }
@@ -221,8 +268,44 @@ module.exports = {
   getUserUsagePercent,
   getUserLongestSession,
   getUserTimeFrequency,
-  getUserDailyUsage,
+  getDailyUsage,
   totalTimeSpent,
-  dailyUsage,
   mostActiveUsers,
 };
+
+/**
+ * @typedef Session 
+ * @property {number} time_on - Beginning of a session
+ * @property {number} time_off - End of a session
+ * @property {number} time_spent - Duration of a session
+*/
+
+/**  
+ * @typedef Encounter 
+ * @property {string} day - Day of the encounter
+ * @property {number} time - Duration of the encounter
+ * 
+*/
+
+/**  
+ * @typedef Comparison 
+ * @property {number} convo_end - Count of encounters
+ * @property {Encounter[]} encounter - Encounters of the users
+ * @property {number} tt - Total time of encounters
+ * @property {number} proportion - Total time divided by count of encounters
+*/
+
+/**
+ * @typedef Frequency
+ * @property {{frequency:number, hour:string}[]} hour_frequencies Frequencies of hours
+ * @property {{frequency:number, minute:string}[]} minute_frequencies
+ * @property {{frequency:number, time:string}[]} time_frequencies
+ */
+
+ /**
+  * @typedef DailyUsage
+  * @property {number} avg Average usage of the day
+  * @property {number} times 
+  * @property {number} tt Total usage in minutes
+  * @property {string} day
+  */
