@@ -306,7 +306,7 @@ export default {
         // this.chartdata.labels = res.map((y) =>
         //   new Date(y.time_on).toLocaleTimeString()
         // );
-        this.chartdata.datasets[0].data = res.map((k) =>[k.time_on, parseInt(k.time_spent / 1000)]);
+        this.chartdata.datasets[0].data = res.map((k) =>[k.time_on, parseInt(k.time_spent)]);
         // this.compareArray2.categories = this.chartdata.labels
 
         this.compareArray2.series = [{ data:this. chartdata.datasets[0].data }]
@@ -315,15 +315,14 @@ export default {
 
     async fetchAnalysis() {
       const res = await getUserSessionsAnalysis({ id: this.$route.params.id });
-      this.hourFreq.i = res.timeFrequency.hours_result.map((x) => x.hour);
-      this.hourFreq.freqs = res.timeFrequency.hours_result.map((x) => x.frequency);
+      this.hourFreq.i = res.timeFrequency.hour_frequencies.map((x) => x.hour);
+      this.hourFreq.freqs = res.timeFrequency.hour_frequencies.map((x) => x.frequency);
 
       this.options.xaxis.categories = this.hourFreq.i;
       this.series = [{data: this.hourFreq.freqs }];
-      console.log(this.options);
 
-      this.minuteFreq.i = res.timeFrequency.minutes_result.map((x) => x.minute);
-      this.minuteFreq.freqs = res.timeFrequency.minutes_result.map((x) => x.frequency);
+      this.minuteFreq.i = res.timeFrequency.minute_frequencies.map((x) => x.minute);
+      this.minuteFreq.freqs = res.timeFrequency.minute_frequencies.map((x) => x.frequency);
 
       this.options2.xaxis.categories = this.minuteFreq.i;
       this.series2 = [{data: this.minuteFreq.freqs }];
@@ -337,12 +336,12 @@ export default {
       
       this.last24Chart.series = [{ data:  this.last24.daily }]
 
-      this.options3.xaxis.categories = res.timeFrequency.times_result.map(x=> x.time);
-      this.series3 = [{data:res.timeFrequency.times_result.map(x=> x.frequency)}];
+      this.options3.xaxis.categories = res.timeFrequency.time_frequencies.map(x=> x.time);
+      this.series3 = [{data:res.timeFrequency.time_frequencies.map(x=> x.frequency)}];
 
-      this.longestSession = res.longestSession.duration / 1000;
+      this.longestSession = res.longestSession.duration;
       this.longestSessionDay = res.longestSession.day;
-      this.totalTimeSpent = res.totalTime / 1000;
+      this.totalTimeSpent = res.totalTime;
       this.usagePercent = res.usagePercent;
       this.loaded = false;
     },

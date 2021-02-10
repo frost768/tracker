@@ -109,7 +109,7 @@ export default {
   methods: {
     getTotal: async function a() {
       let tt = await getTotalTimeSpent();
-      this.totalTime = tt / 1000;
+      this.totalTime = tt;
       let tt2 = await allDaily();
       this.daily = tt2;
       this.options2.xaxis.categories = this.daily.map(x=> x.day)
@@ -118,7 +118,7 @@ export default {
     mostActive: async function b() {
       let mostActive = await mostActiveUsers();
       this.mostActiveUsers = mostActive.map((x) => {
-        return { name: x.id, tt: Math.floor(x.tt/(1000*60*24)) };
+        return { name: x.id, tt: Math.floor(x.tt/(60*24)) };
       });
     },
   },
