@@ -2,88 +2,6 @@ const fs = require('fs');
 const Database = require('better-sqlite3');
 const dbsql = new Database('./data/deneme.db');
 const id_tag = require('./data/id_tag.json');
-var first = './data/db.json';
-var second = './data/data/db.json';
-var bkp = './data/bkp/';
-var files = [first, second];
-var db = undefined;
-
-function readDB(){
-  var mtime = 0;
-	fs.readdirSync(bkp).sort((a, b) => 
-	 fs.statSync(bkp + b).mtimeMs - fs.statSync(bkp + a).mtimeMs
-	).forEach(x => files.push(bkp + x))
-	
-	let h = 0
-	for (let i = 0; i < files.length; i++) {
-	  const file = files[i];
-	  try {
-	        h++;
-	        console.log(file)
-	        db = fs.readFileSync(file, 'utf-8');
-	        mtime = fs.statSync(file).mtimeMs;
-	        db = JSON.parse(db);
-
-	        if (db) {
-		    console.log(new Date(mtime).toLocaleString(), 'tarihli dosya yüklendi.');
-	            break;
-        	}
-        }catch {
-        	console.error(h, '.DB Bozuk: Son kayıt ', new Date(mtime));
-    	}
-  }
-}
-let deleteAt = -1;
-
-function addSession(usr) {
-  deleteAt += 1;
-  if (deleteAt == 5) {
-    console.log('Siliniyor..');
-    files = [];
-    fs.readdirSync(bkp)
-      .sort((a, b) => {
-        return fs.statSync(bkp + b).mtimeMs - fs.statSync(bkp + a).mtimeMs;
-      })
-      .forEach(x => files.push(bkp + x));
-    files.slice(20).forEach(y =>
-      fs.unlink(y, (err) => {
-        err ? console.log(err) : console.log(y, 'silindi');
-      })
-    );
-    deleteAt = 0;
-  }
-
-  let contact = db.find(a => a.id == usr[0]);
-  if (contact) {
-    contact.sessions.push({ on: usr[1], off: usr[2], time: usr[2] - usr[1] });
-  } else {
-    let u = { id: usr[0], tag: 'bilinmiyor', name: usr[0], sessions: [] };
-    u.sessions.push({ on: usr[1], off: usr[2], time: usr[2] - usr[1] });
-    db.push(u);
-  }
-  fs.copyFile(first, second, fs.constants.COPYFILE_FICLONE, (err) => {
-    err ? console.log(err) : console.log('DB copied');
-  });
-
-  fs.copyFile(
-    first,
-    bkp + 'db' + Date.now() + '.json',
-    fs.constants.COPYFILE_EXCL,
-    (err) => {
-      if (err) console.log('Error' + err);
-      //else console.log('Backed up')
-    }
-  );
-
-  fs.writeFile(first, JSON.stringify(db), function (err) {
-    if (err) console.log(err);
-    else {
-      console.log('| -> Saved');
-    }
-  });
-
-  return usr[2] - usr[1];
-}
 
 function checkTempJson() {
   var temp = './data/temp.json';
@@ -133,9 +51,8 @@ function sessionLogger(json, users) {
 
     // Add offline time
     usr_found.push(Date.now());
-
-    // Add session to DB and return timespent formatted
-    let time_spent = addSession(usr_found);
+    
+    let time_spent = usr_found[2] - usr_found[1];
     let session = {
       id: usr_found[0].toString(), 
       tag: id_tag[usr_found[0]],
