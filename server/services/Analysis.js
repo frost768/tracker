@@ -15,7 +15,7 @@ function analyze(id) {
  * @param {number} query.id1 - First user to be compared
  * @param {number} query.id2 - Second user to be compared
  * @param {number} [query.min] - Take less then this minutes into account
- * @returns {Comparison[]} Comparison of the users' sessions
+ * @returns {Comparison} Comparison of the users' sessions
  */
 function compareUsers(query) {
   const { id1, id2, min = 0 } = query;
@@ -271,6 +271,7 @@ module.exports = {
   getDailyUsage,
   totalTimeSpent,
   mostActiveUsers,
+  compareUsersSQL,
 };
 
 /**
@@ -282,7 +283,9 @@ module.exports = {
 
 /**  
  * @typedef Encounter 
- * @property {string} day - Day of the encounter
+ * @property {Object} day - Days of the encounter
+ * @property {string} day.u1date - User 1 date time of the encounter
+ * @property {string} day.u2date - User 2 date time of the encounter
  * @property {number} time - Duration of the encounter
  * 
 */
