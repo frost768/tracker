@@ -129,7 +129,6 @@ function tgSessionLogger(json, users) {
 }
 
 module.exports = {
-    readDB,
     sessionLogger,
     checkTempJson,
     tgSessionLogger
