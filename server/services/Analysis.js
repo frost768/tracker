@@ -47,9 +47,13 @@ function compareUsers(query) {
     end = usr1_last;
     end_sessions = u2s.filter((x) => x.time_on < end && x.time_off > begin);
   }
-
-  begin_sessions = u1s;
-  end_sessions = u2s;
+  console.log('id1', id1);
+  console.log('id2', id2);
+  console.log('begin_sessions length', begin_sessions.length);
+  console.log('end_sessions length', end_sessions.length);
+  console.time('Comparison took')
+  // begin_sessions = u1s;
+  // end_sessions = u2s;
 
   for (var i = 0; i < begin_sessions.length; i++) {
     const u1 = begin_sessions[i];
@@ -69,9 +73,16 @@ function compareUsers(query) {
         u2.time_on < u1.time_on && u2_left_in_u1_time;
       // let u2_entered_before_u1 = !u2_entered_in_u1_time && u2.time_on < u1.time_on;
       // let U1JoinAndU2LeavesBefore = u2_entered_before_u1 && (u1.time_on < u2.time_off && u1.time_on > u2.time_on);
-      const u1date = new Date(u1.time_on).toLocaleString('tr');
-      const u2date = new Date(u2.time_off).toLocaleString('tr');
-      const day = { u1date, u2date };
+      const u1on  = new Date(u1.time_on).toLocaleString('tr');
+      const u1off = new Date(u1.time_off).toLocaleString('tr');
+      const u2on  = new Date(u2.time_on).toLocaleString('tr');
+      const u2off = new Date(u2.time_off).toLocaleString('tr');
+      const day = { 
+        u1on,
+        u1off,
+        u2on,
+        u2off 
+      };
 
       if (u2_in_u1) {
         const time = parseInt(u2.time_spent / 1000);
@@ -90,53 +101,69 @@ function compareUsers(query) {
       }
     });
   }
-
+  console.timeEnd('Comparison took')
   const convo_end = encounter.length;
   const tt = encounter.reduce((a, b) => a + b.time, 0);
   const proportion = tt / convo_end;
   return { convo_end, encounter, tt, proportion };
 }
 
-function compareUsersSQL({ id1, id2, min }) {
-  const temp_u1 = `CREATE TEMP TABLE u1 AS SELECT * FROM sessions WHERE user_id = ${id1}`;
-  const temp_u2 = `CREATE TEMP TABLE u2 AS SELECT * FROM sessions WHERE user_id = ${id2}`;
-  let u2_in_u1 = `SELECT (u2.time_spent / 1000) AS time FROM u1 , u2
-     WHERE 
-        (u2.time_on BETWEEN u1.time_on AND u1.time_off) AND 
-        (u2.time_off BETWEEN u1.time_on AND u1.time_off)`;
-
-  let u2_left_after_u1 = `SELECT (u1.time_off - u2.time_on) / 1000 AS time FROM u1 , u2
-     WHERE 
-        (u2.time_on between u1.time_on AND u1.time_off) AND 
-        u2.time_off > u1.time_off`;
-
-  let u2_entered_and_left_first = `SELECT (u1.time_off - u2.time_on) / 1000 AS time FROM u1, u2
-     WHERE 
-        (u2.time_off between u1.time_on AND u1.time_off) AND 
-        u2.time_on < u1.time_on`;
-
-  if (min) {
-    u2_in_u1 += ` AND time > ${min};`;
-    u2_left_after_u1 += ` AND time > ${min};`;
-    u2_entered_and_left_first += ` AND time > ${min};`;
-  } else {
-    u2_in_u1 += ';';
-    u2_left_after_u1 += ';';
-    u2_entered_and_left_first += ';';
-  }
-
-  db.prepare(temp_u1).run();
-  db.prepare(temp_u2).run();
-  const u2_in_u1_result = db.prepare(u2_in_u1).all();
-  const u2_left_after_u1_result = db.prepare(u2_left_after_u1).all();
-  const u2_entered_and_left_first_result = db
-    .prepare(u2_entered_and_left_first)
-    .all();
-  return [
-    u2_in_u1_result,
-    u2_left_after_u1_result,
-    u2_entered_and_left_first_result,
-  ];
+function compareUsersSQL({ id1, id2, min = 0 }) {
+  const sql = `WITH borders AS
+  (SELECT user_id, MAX(ton) AS beg, MIN(toff) AS en FROM
+  (SELECT  
+  user_id,
+  MIN(time_on) AS ton, 
+  MAX(time_off) AS toff
+  FROM sessions 
+  WHERE 
+      user_id = ${id1} 
+      or 
+      user_id = ${id2} 
+  GROUP BY 
+      user_id
+  )),
+  
+  temps AS (SELECT 
+  sessions.user_id AS u,sessions.time_on AS ton,
+  sessions.time_off AS toff, sessions.time_spent AS ts
+  FROM 
+  sessions,borders 
+  WHERE  
+  time_on > borders.beg AND 
+  time_off < borders.en AND 
+  sessions.user_id = ${id1} OR 
+  sessions.user_id = ${id2})
+  
+  SELECT 
+  datetime(u1ton / 1000, 'unixepoch', 'localtime') AS u1on,
+  datetime(u1toff / 1000, 'unixepoch', 'localtime') AS u1off,
+  datetime(u2ton / 1000, 'unixepoch', 'localtime') AS u2on,
+  datetime(u2toff / 1000, 'unixepoch', 'localtime') AS u2off,
+  CASE 
+      WHEN (u2ton BETWEEN u1ton AND u1toff) AND (u2toff BETWEEN u1ton AND u1toff)
+      THEN ts2 / 1000
+      WHEN (u1ton BETWEEN u2ton AND u2toff) AND (u1toff BETWEEN u2ton AND u2toff)
+      THEN ts1 / 1000
+      WHEN (u2toff BETWEEN u1ton AND u1toff) AND u2ton < u1ton
+      THEN (u2toff - u1ton) * 1.0 / 1000
+      WHEN (u2ton BETWEEN u1ton AND u1toff) AND u2toff > u1toff
+      THEN (u1toff - u2ton) * 1.0 / 1000
+      ELSE 0
+      END
+      AS time
+   FROM (
+  (SELECT ton AS u1ton, toff AS u1toff, ts AS ts1 FROM temps WHERE u = ${id1}) AS u1,
+  (SELECT ton AS u2ton, toff AS u2toff, ts AS ts2  FROM temps WHERE u = ${id2}) AS u2
+  ) where time > ${min};`
+  console.log(id1, id2);
+  console.time('Comparison took')
+  const encounter = db.prepare(sql).all();
+  console.timeEnd('Comparison took')
+  const convo_end = encounter.length;
+  const tt = encounter.reduce((a, b) => a + b.time, 0);
+  const proportion = tt / convo_end;
+  return { convo_end, encounter, tt, proportion };
 }
 
 /**
@@ -255,7 +282,7 @@ function totalTimeSpent() {
 function mostActiveUsers() {
   return db
     .prepare(
-      'SELECT user_id AS id, SUM(time_spent / 1000) AS tt FROM sessions GROUP BY id ORDER BY tt DESC LIMIT 5'
+      'SELECT user_id AS id, SUM(time_spent / 1000) AS tt FROM sessions GROUP BY user_id ORDER BY tt DESC LIMIT 5'
     )
     .all();
 }
