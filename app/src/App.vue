@@ -7,13 +7,13 @@
     <v-app-bar
      color="green"
      app>
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer">></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       <v-app-bar-title color="white">WhatsApp Tracker</v-app-bar-title>
     </v-app-bar>
 
     <!-- Sizes your content based upon application components -->
     <v-main>
-      <router-view/>
+      <router-view :key="$route.fullPath"/>
     </v-main>
 
     <v-footer app>
@@ -23,9 +23,8 @@
 </template>
 
 <script>
-import UserList from "./components/UserList.vue";
+import UserList from './components/UserList.vue';
 
-// import DashBoard from "./components/DashBoard";
 export default {
   name: "App",
   components: {
@@ -34,7 +33,6 @@ export default {
   data(){
     return {
       drawer:false,
-     
     }
   },
 };

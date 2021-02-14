@@ -7,9 +7,7 @@
           </v-list-item-title>
       </v-list-item-content>
     </v-list-item>
-
     <v-divider></v-divider>
-
     <v-list dense nav>
       <v-list-item v-for="user in users" :key="user.id">
         <DBRecords :user="user" />
@@ -19,9 +17,9 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
-import store from "../store/index";
-import DBRecords from "./DBRecords.vue";
+import { mapActions } from 'vuex';
+import store from '../store/index';
+import DBRecords from './DBRecords.vue';
 export default {
   name: "UserList",
   props: {},
@@ -29,7 +27,7 @@ export default {
     DBRecords,
   },
   created(){
-    this.ws = new WebSocket('ws://192.168.43.1:8081');
+    this.ws = new WebSocket('ws://192.168.1.35:8081');
     store.dispatch("fetchUsers").then(()=>{
       store.dispatch('fetchOnline').then(()=> {
       this.ws.onmessage = function(data) {

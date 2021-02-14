@@ -1,25 +1,15 @@
 <template>
   <v-container>
     <v-row>
-      <v-col>
-        <v-card max-width="500">
-          <v-card-title>EN AKTİF KULLANICILAR</v-card-title>
-          <div class="ml-5 mb-4 mr-5" :key="user.tt" v-for="user in mostActiveUsers">
-            <v-row>
-            <v-col>
-
-            <span class="font-weight-bold">{{ user.name }}</span>
-            </v-col>
-            <v-col>
-            {{ user.tt }} saat
-            </v-col>
-            </v-row>
-          </div>
+      <v-col lg="4" md="4" cols="6">
+        <v-card>
+          <v-card-title>En Aktif Kullanıcılar</v-card-title>
+          <chart :type="'pie'" :options="chartOptions" :series="series"></chart>
         </v-card>
       </v-col>
-      <v-col>
-        <v-card max-width="300">
-          <v-card-title>HARCANAN ZAMAN</v-card-title>
+      <v-col lg="2" md="2" cols="6">
+        <v-card>
+          <v-card-title>Harcanan Zaman</v-card-title>
           <v-list-item three-line>
             <v-list-item-content>
               <v-col>
@@ -47,7 +37,7 @@
                   {{ Math.floor(totalTime / 60) }}
                 </v-list-item-title>
                 <v-list-item-subtitle>dakika</v-list-item-subtitle>
-                 <v-list-item-title class="headline">
+                <v-list-item-title class="headline">
                   {{ Math.floor(totalTime) }}
                 </v-list-item-title>
                 <v-list-item-subtitle>saniye</v-list-item-subtitle>
@@ -55,55 +45,55 @@
             </v-col>
           </v-list-item>
         </v-card>
-        <v-card class="mx-auto my-12" max-width="800">
-          <v-card-title >Dakika Sıklıkları</v-card-title>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col lg="6" md="6" cols="12">
+        <v-card max-width="800">
+          <v-card-title>Günlük Toplam Kullanım</v-card-title>
           <chart :type="'line'" :options="options2" :series="series2"></chart>
-          <!-- <v-sparkline
-            color="#fcad03"
-            smooth="30"
-            fill="fill"
-            :value="minuteFreq.freqs"
-            :labels="minuteFreq.i"
-            auto-draw
-          ></v-sparkline> -->
         </v-card>
       </v-col>
-      
     </v-row>
   </v-container>
 </template>
 
 <script>
-import Chart from "../components/Chart";
-import { getTotalTimeSpent, mostActiveUsers, allDaily } from "../services/api.service";
+import Chart from '../components/Chart.vue';
+import {
+  getTotalTimeSpent,
+  mostActiveUsers,
+  allDaily,
+} from '../services/api.service';
 export default {
-  name: "DashBoard",
+  name: 'DashBoard',
   components: {
-    Chart
+    Chart,
   },
-  props: {},
-  computed: {},
-
-  watch: {},
   data() {
     return {
       totalTime: 0,
       mostActiveUsers: [],
       labels: [],
       daily: [],
-      options2 : {
+      options2: {
         chart: {
-          type: 'line'
+          type: 'line',
         },
 
         xaxis: {
-          categories: []
-        }
+          categories: [],
+        },
       },
-      series2: [{
-        name: 'sales',
-        data: []
-      }],
+      series2: [
+        {
+          data: [],
+        },
+      ],
+      series: [],
+      chartOptions: {
+        labels: [],
+      },
     };
   },
   methods: {
@@ -112,14 +102,16 @@ export default {
       this.totalTime = tt;
       let tt2 = await allDaily();
       this.daily = tt2;
-      this.options2.xaxis.categories = this.daily.map(x=> x.day)
-      this.series2 = [{data: tt2.map(x=> x.tt)}]
+      this.options2.xaxis.categories = this.daily.map((x) => x.day);
+      this.series2 = [{ data: tt2.map((x) => x.tt) }];
     },
     mostActive: async function b() {
       let mostActive = await mostActiveUsers();
       this.mostActiveUsers = mostActive.map((x) => {
-        return { name: x.id, tt: Math.floor(x.tt/(60*24)) };
+        return { name: x.id, tt: Math.floor(x.tt / (60 * 24)) };
       });
+      this.series = this.mostActiveUsers.map((x) => x.tt);
+      this.chartOptions = { labels: this.mostActiveUsers.map((x) => x.name) };
     },
   },
 
@@ -130,6 +122,6 @@ export default {
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
+
 <style scoped>
 </style>
