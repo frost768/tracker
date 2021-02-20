@@ -24,17 +24,6 @@
         saat <br />
         Kullanım yüzdesi: % {{ Math.floor(user.analysis.usagePercent) }}
       </v-card-subtitle>
-      <v-card-actions>
-        <v-btn v-if="!compareLoad" color="deep-purple lighten-2" text>
-          Karşılaştır
-        </v-btn>
-        <v-progress-circular
-          v-if="compareLoad"
-          :size="20"
-          color="primary"
-          indeterminate
-        ></v-progress-circular>
-      </v-card-actions>
     </v-card>
   </div>
 </template>
@@ -43,14 +32,17 @@
 import { mapGetters } from 'vuex';
 export default {
   name: "UserCard",
+
   data() {
     return {
       compareLoad: false,
     };
   },
+
   computed: {
     ...mapGetters(['user']),
   },
+
   created() {
      this.$store.dispatch("fetchUser", this.$route.params.id)
   },

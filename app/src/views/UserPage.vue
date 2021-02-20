@@ -13,7 +13,7 @@
                 <v-card v-if="sessions">
                   <v-card-title>Oturumlar</v-card-title>
                   <chart
-                    :type="'rangeBar'"
+                    :type="'scatter'"
                     :options="sessions.options.opt"
                     :series="sessions.options.series"
                   ></chart>
@@ -27,6 +27,7 @@
                     :options="analysis.dailyUsage.options.opt"
                     :series="analysis.dailyUsage.options.series"
                   ></chart>
+                  
                 </v-card>
               </v-col>
             </v-row>
@@ -43,7 +44,16 @@
               </v-col>
             </v-row>
           </v-tab-item>
-         
+         <v-tab>Karşılaştırma</v-tab>
+         <v-tab-item>
+          <div 
+          v-for="user in users"
+          :key="user.id" 
+          >
+          
+            {{ user.name }}
+          </div>
+         </v-tab-item>
         </v-tabs>
       </v-col>
     </v-row>
@@ -61,7 +71,7 @@ export default {
     Chart,
   },
   computed: {
-    ...mapGetters(['sessions', 'analysis']),
+    ...mapGetters(['sessions', 'analysis', 'users']),
   },
   mounted() {
     this.$store.dispatch('fetchUserSessions', this.$route.params.id);

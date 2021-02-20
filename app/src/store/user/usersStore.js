@@ -3,8 +3,9 @@ import {
   getOnlineUsers,
   getUserSessionsAnalysis,
   getUserSessions,
-  // compareTagee,
+  compareTagee,
 } from '../../services/api.service';
+
 const state = {
   user: {
     id: '',
@@ -17,6 +18,7 @@ const state = {
   users: [],
   online: [],
 };
+
 const getters = {
   users: () => {
     let onlineUsers = state.users.map(x => {
@@ -49,6 +51,7 @@ const mutations = {
         1
       );
   },
+
   setUser(state, user) {
       user.times = state.online.find(x => x.id == user.id);
       const time = user.times ? user.times[1] : '';
@@ -58,6 +61,7 @@ const mutations = {
       user.sessions = null;
     state.user = user;
   },
+
   setUserSessions(state, sessions) {
     sessions.options = {
       opt: {
@@ -81,21 +85,15 @@ const mutations = {
           },
       },
       // Scatter
-      // series: [{ data: sessions.map(k => [k.time_on, parseInt(k.time_spent)])},],
+      series: [{ data: sessions.map(k => [k.time_on, parseInt(k.time_spent)])},],
       // RangeBar
-      series: [{ data: sessions.map((k,ind) => ({ x: 'a'+ind, y: [k.time_on, k.time_off] })) }]
+      // series: [{ data: sessions.map((k,ind) => ({ x: 'a'+ind, y: [k.time_on, k.time_off] })) }]
     };
     state.user.sessions = sessions;
   },
+
   setUserAnalysis(state, analysis) {
     analysis.timeFrequency.hour_frequencies.options = {
-        theme: {
-            monochrome: {
-              enabled: true,
-              shadeTo: 'light',
-              shadeIntensity: 0.6
-            }
-          },
       labels: analysis.timeFrequency.hour_frequencies.map(x => x.hour),
       series: analysis.timeFrequency.hour_frequencies.map(x => x.frequency),
     };
@@ -111,9 +109,10 @@ const mutations = {
     analysis.dailyUsage.options = {
       opt: {
         chart: { animations: { enabled: false } },
-        xaxis: { tickAmount: 6 },
-      },
-      series: [{ data: analysis.dailyUsage.map(x => x.tt) }],
+      series: [
+        { data: analysis.dailyUsage.map(x => x.tt) },
+      ],
+    }
     };
 
     // analysis.options3.xaxis.categories = analysis.timeFrequency.time_frequencies.map(x=> x.time);
@@ -148,13 +147,18 @@ const actions = {
     commit('setUser', user);
   },
 
+  async compare({ commit }, { id1, id2}) {
+    const user = await compareTagee({ id1, id2 });
+    commit('setUser', user);
+  },
+
   async fetchUserAnalysis({ commit }, id) {
     const analysis = await getUserSessionsAnalysis({ id });
     commit('setUserAnalysis', analysis);
   },
 
   async fetchUserSessions({ commit }, id) {
-    const sessions = await getUserSessions({ id, from: '2021-02-13' });
+    const sessions = await getUserSessions({ id, from: '2021-01-13' });
     if (sessions.length) {
         const lastSeen = new Date(
             sessions[sessions.length - 1].time_off

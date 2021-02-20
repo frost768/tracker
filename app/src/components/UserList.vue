@@ -8,7 +8,7 @@
       </v-list-item-content>
     </v-list-item>
     <v-divider></v-divider>
-    <v-list dense nav>
+    <v-list>
       <v-list-item v-for="user in users" :key="user.id">
         <DBRecords :user="user" />
       </v-list-item>

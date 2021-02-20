@@ -256,7 +256,7 @@ function getUserTimeFrequency({ id }) {
 function getDailyUsage(id) {
   let query = 
   `SELECT
-    AVG(time_spent / 1000) AS avg,
+    AVG(time_spent) / 1000 AS avg,
     COUNT(*) AS times,
     SUM(time_spent / 1000) AS tt,
     DATE(time_on / 1000, 'unixepoch', 'localtime') AS day
