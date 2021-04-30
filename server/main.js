@@ -1,6 +1,7 @@
 const { logger, init }  = require('./tg.js');
 const { wa, sendRequest }  = require('./wa.js');
 const { checkTempJson, sessionLogger, tgSessionLogger }  = require('./utils.js');
+const { startBackup } = require('./services/DropboxBackup.js');
 
 // --------------- WEBSOCKET -------------------
 const WebSocket = require('ws');
@@ -21,11 +22,12 @@ wss.on('connection', (socket, req) => {
 let users = [];
 let tg_users = [];
 async function main() {
-   init(async ()=>{
+   //init(async ()=>{
+    startBackup();
     users = checkTempJson();
     await wa.connect()
     await sendRequest();
-  })
+  //})
 
   wa.on('user-presence-update', json => {
     users = sessionLogger(json, users);

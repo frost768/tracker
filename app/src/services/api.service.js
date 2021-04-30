@@ -28,7 +28,7 @@ export async function getUserLast24Hour(user){
     return request(endpoints.USER_DAILY.url, user);
 }
 
-export async function compareTagee(users){
+export async function compare(users){
     return request(endpoints.COMPARE_USERS.url, users);
 }
 

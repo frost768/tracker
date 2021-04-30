@@ -8,8 +8,8 @@
           indeterminate
         ></v-progress-linear>
       </template>
-      <v-img v-if="user.pp != './img_avatar5.png'" :src="user.pp"></v-img>
-      <v-img v-else src="@/assets/img_avatar5.png" alt=""></v-img>
+      <v-img v-if="user.pp != './logo.png'" :src="user.pp"></v-img>
+      <v-img v-else src="@/assets/logo.png" alt=""></v-img>
       <v-card-title>{{ user.name }}</v-card-title>
       {{ user.times }}
       <v-card-subtitle v-if="user.analysis != null">

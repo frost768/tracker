@@ -25,7 +25,7 @@
                   <chart
                     type="line"
                     :options="analysis.dailyUsage.options.opt"
-                    :series="analysis.dailyUsage.options.series"
+                    :series="analysis.dailyUsage.options.opt.series"
                   ></chart>
                   
                 </v-card>
@@ -50,8 +50,10 @@
           v-for="user in users"
           :key="user.id" 
           >
-          
-            {{ user.name }}
+          <v-card>
+            <v-card-title>{{ user.name }}</v-card-title>
+          </v-card>
+            
           </div>
          </v-tab-item>
         </v-tabs>

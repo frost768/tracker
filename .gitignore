@@ -121,6 +121,7 @@ app/dist
 
 **/src/assets
 **/data
+**/dropbox.js
 **/*.env
 
 **/.editorconfig

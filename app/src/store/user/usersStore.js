@@ -3,7 +3,7 @@ import {
   getOnlineUsers,
   getUserSessionsAnalysis,
   getUserSessions,
-  compareTagee,
+  compare,
 } from '../../services/api.service';
 
 const state = {
@@ -148,7 +148,7 @@ const actions = {
   },
 
   async compare({ commit }, { id1, id2}) {
-    const user = await compareTagee({ id1, id2 });
+    const user = await compare({ id1, id2 });
     commit('setUser', user);
   },
 
