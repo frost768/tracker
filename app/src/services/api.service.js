@@ -20,19 +20,19 @@ export function mostActiveUsers(){
     return request(endpoints.MOST_ACTIVE_USERS.url)
 }
 
-export async function getUserSessionsAnalysis(user){
+export function getUserSessionsAnalysis(user){
     return request(endpoints.USER_STATISTICS.url, user);
 }
 
-export async function getUserLast24Hour(user){
+export function getUserLast24Hour(user){
     return request(endpoints.USER_DAILY.url, user);
 }
 
-export async function compare(users){
+export function compare(users){
     return request(endpoints.COMPARE_USERS.url, users);
 }
 
-export async function allDaily(){
+export function allDaily(){
     return request(endpoints.ALL_DAILY_USAGE.url);
 }
 

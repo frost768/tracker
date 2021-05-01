@@ -10,7 +10,7 @@
     <v-divider></v-divider>
     <v-list>
       <v-list-item v-for="user in users" :key="user.id">
-        <DBRecords :user="user" />
+        <DBRecord :user="user" />
       </v-list-item>
     </v-list>
   </div>
@@ -19,16 +19,17 @@
 <script>
 import { mapActions } from 'vuex';
 import store from '../store/index';
-import DBRecords from './DBRecords.vue';
+import DBRecord from './DBRecords.vue';
+import { ip } from '../services/httpClient';
 export default {
-  name: "UserList",
+  name: 'UserList',
   props: {},
   components: {
-    DBRecords,
+    DBRecord,
   },
   created(){
-    this.ws = new WebSocket('ws://192.168.1.35:8081');
-    store.dispatch("fetchUsers").then(()=>{
+    this.ws = new WebSocket(`ws://${ip}:8081`);
+    store.dispatch('fetchUsers').then(()=>{
       store.dispatch('fetchOnline').then(()=> {
       this.ws.onmessage = function(data) {
         store.commit('setOnline',JSON.parse(data.data));
@@ -48,7 +49,7 @@ export default {
   },
 
   methods: {
-    ...mapActions(["fetchUsers", "fetchOnline"]),
+    ...mapActions(['fetchUsers', 'fetchOnline']),
     
   },
 };

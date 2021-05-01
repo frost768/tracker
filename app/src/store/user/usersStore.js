@@ -15,6 +15,7 @@ const state = {
     lastSeen: '',
     analysis: null,
   },
+  comparisons: [],
   users: [],
   online: [],
 };
@@ -22,18 +23,19 @@ const state = {
 const getters = {
   users: () => {
     let onlineUsers = state.users.map(x => {
-      let uh = state.online.find(y => y[0] == x.id);
-      let status = uh ? true : false;
-      let time = uh ? uh[1] : '';
+      let user = state.online.find(y => y[0] == x.id);
+      let status = user ? true : false;
+      let time = user ? user[1] : '';
       x.online = status;
       x.times = time;
       return x;
     });
     return onlineUsers;
   },
-  user: () => state.user,
-  sessions: () => state.user.sessions,
-  analysis: () => state.user.analysis,
+  user: (state) => state.user,
+  sessions: (state) => state.user.sessions,
+  analysis: (state) => state.user.analysis,
+  comparison: (state) => (id)=>state.comparisons.find(x=> x.id2 == id),
 };
 
 const mutations = {
@@ -53,77 +55,146 @@ const mutations = {
   },
 
   setUser(state, user) {
-      user.times = state.online.find(x => x.id == user.id);
-      const time = user.times ? user.times[1] : '';
-      user.times = time;
-      user.analysis = null;
-      user.lastSeen = null;
-      user.sessions = null;
+    user.times = state.online.find(x => x.id == user.id);
+    const time = user.times ? user.times[1] : '';
+    user.times = time;
+    user.analysis = null;
+    user.lastSeen = null;
+    user.sessions = null;
     state.user = user;
   },
 
   setUserSessions(state, sessions) {
     sessions.options = {
-      opt: {
-        chart: { animations: { enabled: false } },
-        xaxis: {
-          type: 'datetime',
-          labels: {
-            datetimeUTC: false,
-          },
+      chart: { animations: { enabled: false } },
+      xaxis: {
+        type: 'datetime',
+        labels: {
+          datetimeUTC: false,
         },
-        
-        tooltip: {
-          x: {
-            format: 'HH:mm:ss',
-          },
-        },
-        plotOptions: {
-            bar: {
-              horizontal: true
-            }
-          },
       },
-      // Scatter
-      series: [{ data: sessions.map(k => [k.time_on, parseInt(k.time_spent)])},],
-      // RangeBar
-      // series: [{ data: sessions.map((k,ind) => ({ x: 'a'+ind, y: [k.time_on, k.time_off] })) }]
+      tooltip: {
+        x: {
+          format: 'HH:mm:ss',
+        },
+      },
+      series: [
+        { data: sessions.map(k => [k.time_on, parseInt(k.time_spent)]) },
+      ],
     };
     state.user.sessions = sessions;
   },
 
   setUserAnalysis(state, analysis) {
     analysis.timeFrequency.hour_frequencies.options = {
+      chart: { animations: { enabled: false } },
       labels: analysis.timeFrequency.hour_frequencies.map(x => x.hour),
-      series: analysis.timeFrequency.hour_frequencies.map(x => x.frequency),
+      series: [
+        { data: analysis.timeFrequency.hour_frequencies.map(x => x.frequency) },
+      ],
     };
-    // analysis.options.xaxis.categories = state.analysis.hourFreq.i;
-    // analysis.series = [{data: state.analysis.hourFreq.freqs }];
-    // analysis.minuteFreq.i = analysis.timeFrequency.minute_frequencies.map((x) => x.minute);
-    // analysis.minuteFreq.freqs = analysis.timeFrequency.minute_frequencies.map((x) => x.frequency);
-    // analysis.options2.xaxis.categories = state.analysis.minuteFreq.i;
-    // analysis.series2 = [{data: state.analysis.minuteFreq.freqs }];
-    // analysis.last24Backup = analysis.dailyUsage;
-    // analysis.last24.i = analysis.dailyUsage.map((x) => x.day)
+
+    analysis.timeFrequency.minute_frequencies.options = {
+      chart: { animations: { enabled: false } },
+      labels: analysis.timeFrequency.minute_frequencies.map(x => x.minute),
+      series: [
+        {
+          data: analysis.timeFrequency.minute_frequencies.map(x => x.frequency),
+        },
+      ],
+    };
+
+    analysis.timeFrequency.time_frequencies.options = {
+      chart: { animations: { enabled: false } },
+      labels: analysis.timeFrequency.time_frequencies.map(x => x.time),
+      series: [
+        { data: analysis.timeFrequency.time_frequencies.map(x => x.frequency) },
+      ],
+    };
 
     analysis.dailyUsage.options = {
-      opt: {
-        chart: { animations: { enabled: false } },
-      series: [
-        { data: analysis.dailyUsage.map(x => x.tt) },
+      xaxis: {
+        type: 'datetime',
+        labels: {
+          datetimeUTC: false,
+        },
+      },
+      tooltip: {
+        x: {
+          format: 'dd.MM.yyyy HH:mm:ss',
+        },
+      },
+      dataLabels: {
+        enabled: false,
+      },
+      stroke: {
+        width: [1, 2, 1],
+      },
+      colors: ['#66C7F4', '#FF0000', '#00FF00'],
+      chart: { animations: { enabled: false } },
+      yaxis: [
+        {},
+        { opposite: true },
+        {
+          opposite: true,
+          show: false,
+        },
       ],
-    }
+      series: [
+        {
+          name: 'Toplam Süre (dk)',
+          type: 'column',
+          data: analysis.dailyUsage.map(x => [
+            x.time_on,
+            (x.tt / 60).toFixed(2),
+          ]),
+        },
+        {
+          name: 'Ortalama (dk)',
+          type: 'line',
+          data: analysis.dailyUsage.map(x => [
+            x.time_on,
+            (x.avg / 60).toFixed(2),
+          ]),
+        },
+        {
+          name: 'Giriş Sayısı',
+          type: 'column',
+          data: analysis.dailyUsage.map(x => [x.time_on, x.times]),
+        },
+      ],
     };
-
-    // analysis.options3.xaxis.categories = analysis.timeFrequency.time_frequencies.map(x=> x.time);
-    // analysis.series3 = [{data:analysis.timeFrequency.time_frequencies.map(x=> x.frequency)}];
-    // analysis.longestSession = analysis.longestSession.duration;
-    // analysis.longestSessionDay = analysis.longestSession.day;
-    // analysis.totalTimeSpent = analysis.totalTime;
-    // analysis.usagePercent = analysis.usagePercent;
+    state.comparisons = [];
     state.user.analysis = analysis;
   },
   setUserLastSeen: (state, lastSeen) => (state.user.lastSeen = lastSeen),
+  setComparison: (state, userComparison) => {
+    let list = state.comparisons;
+    userComparison.options = {
+      xaxis: {
+        type: 'datetime',
+        labels: {
+          datetimeUTC: false,
+        },
+      },
+      tooltip: {
+        x: {
+          format: 'dd.MM.yyyy HH:mm:ss',
+        },
+      },
+      chart: { animations: { enabled: false } },
+      series: [
+        {
+          name: 'Ortak Zaman (sn)',
+          type: 'line',
+          data: userComparison.encounter.map(x => [x.day.u1on,(x.time).toFixed(2)]),
+        },
+      ],
+    };
+    if(!list.find(x=> x.id2 == userComparison.id2))
+    list.push(userComparison);
+    state.comparisons = list;
+  },
 };
 
 const actions = {
@@ -147,9 +218,9 @@ const actions = {
     commit('setUser', user);
   },
 
-  async compare({ commit }, { id1, id2}) {
-    const user = await compare({ id1, id2 });
-    commit('setUser', user);
+  async compare({ commit }, { id1, id2 }) {
+    const comparisonResult = await compare({ id1, id2 });
+    commit('setComparison', comparisonResult);
   },
 
   async fetchUserAnalysis({ commit }, id) {
@@ -157,16 +228,25 @@ const actions = {
     commit('setUserAnalysis', analysis);
   },
 
-  async fetchUserSessions({ commit }, id) {
-    const sessions = await getUserSessions({ id, from: '2021-01-13' });
+  async fetchUserSessions({ commit }, query) {
+    let { id, from, to } = query;
+    let now = new Date();
+
+    if (!from)
+      from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+        .toISOString()
+        .substr(0, 10);
+    if (!to) to = now.toISOString().substr(0, 10);
+
+    const sessions = await getUserSessions({ id, from, to });
     if (sessions.length) {
-        const lastSeen = new Date(
-            sessions[sessions.length - 1].time_off
-          ).toLocaleString();
-          commit('setUserSessions', sessions);
-          commit('setUserLastSeen', lastSeen);
+      const lastSeen = new Date(
+        sessions[sessions.length - 1].time_off
+      ).toLocaleString();
+      commit('setUserSessions', sessions);
+      commit('setUserLastSeen', lastSeen);
     } else {
-        commit('setUserLastSeen', 'Verilen aralıkta oturum yok');
+      commit('setUserLastSeen', 'Verilen aralıkta oturum yok');
     }
   },
 };

@@ -1,28 +1,31 @@
 <template>
-  <v-container>
+  <v-col>
     <v-row>
-      <v-col lg="4" md="4" cols="6">
+      <v-col lg="4" md="6" cols="6">
         <v-card>
           <v-card-title>En Aktif Kullanıcılar</v-card-title>
-          <chart :type="'pie'" :options="chartOptions" :series="series"></chart>
+          <chart
+            :type="'pie'"
+            :options="mostActives.options"
+          ></chart>
         </v-card>
       </v-col>
-      <v-col lg="2" md="2" cols="6">
+      <v-col lg="4" md="4" cols="6">
         <v-card>
           <v-card-title>Harcanan Zaman</v-card-title>
           <v-list-item three-line>
             <v-list-item-content>
               <v-col>
                 <v-list-item-title class="headline">
-                  {{ Math.floor(totalTime / (3600 * 24 * 365)) }}
+                  {{ timeSpent.year }}
                 </v-list-item-title>
                 <v-list-item-subtitle>yıl</v-list-item-subtitle>
                 <v-list-item-title class="headline">
-                  {{ Math.floor(totalTime / (3600 * 24 * 7)) }}
+                  {{ timeSpent.week }}
                 </v-list-item-title>
                 <v-list-item-subtitle>hafta </v-list-item-subtitle>
                 <v-list-item-title class="headline">
-                  {{ Math.floor(totalTime / (3600 * 24)) }}
+                  {{ timeSpent.day }}
                 </v-list-item-title>
                 <v-list-item-subtitle>gün</v-list-item-subtitle>
               </v-col>
@@ -30,15 +33,15 @@
             <v-col>
               <v-list-item-content>
                 <v-list-item-title class="headline">
-                  {{ Math.floor(totalTime / 3600) }}
+                  {{ timeSpent.hour }}
                 </v-list-item-title>
                 <v-list-item-subtitle>saat</v-list-item-subtitle>
                 <v-list-item-title class="headline">
-                  {{ Math.floor(totalTime / 60) }}
+                  {{ timeSpent.minute }}
                 </v-list-item-title>
                 <v-list-item-subtitle>dakika</v-list-item-subtitle>
                 <v-list-item-title class="headline">
-                  {{ Math.floor(totalTime) }}
+                  {{ timeSpent.second }}
                 </v-list-item-title>
                 <v-list-item-subtitle>saniye</v-list-item-subtitle>
               </v-list-item-content>
@@ -48,80 +51,35 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col lg="6" md="6" cols="12">
+      <v-col lg="4" md="6" cols="12">
         <v-card max-width="800">
           <v-card-title>Günlük Toplam Kullanım</v-card-title>
-          <chart :type="'line'" :options="options2" :series="series2"></chart>
+          <chart
+            :type="'line'"
+            :options="allDaily.options"
+          ></chart>
         </v-card>
       </v-col>
     </v-row>
-  </v-container>
+  </v-col>
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import Chart from '../components/Chart.vue';
-import {
-  getTotalTimeSpent,
-  mostActiveUsers,
-  allDaily,
-} from '../services/api.service';
+
 export default {
   name: 'DashBoard',
   components: {
     Chart,
   },
-  data() {
-    return {
-      totalTime: 0,
-      mostActiveUsers: [],
-      labels: [],
-      daily: [],
-      options2: {
-        chart: {
-          type: 'line',
-        },
-
-        xaxis: {
-          categories: [],
-        },
-      },
-      series2: [
-        {
-          data: [],
-        },
-      ],
-      series: [],
-      chartOptions: {
-        labels: [],
-      },
-    };
+  computed: {
+    ...mapGetters(['timeSpent','mostActives','allDaily']),
   },
-  methods: {
-    getTotal: async function a() {
-      let tt = await getTotalTimeSpent();
-      this.totalTime = tt;
-      let tt2 = await allDaily();
-      this.daily = tt2;
-      this.options2.xaxis.categories = this.daily.map((x) => x.day);
-      this.series2 = [{ data: tt2.map((x) => x.tt) }];
-    },
-    mostActive: async function b() {
-      let mostActive = await mostActiveUsers();
-      this.mostActiveUsers = mostActive.map((x) => {
-        return { name: x.id, tt: Math.floor(x.tt / (60 * 24)) };
-      });
-      this.series = this.mostActiveUsers.map((x) => x.tt);
-      this.chartOptions = { labels: this.mostActiveUsers.map((x) => x.name) };
-    },
-  },
-
   mounted() {
-    this.getTotal();
-    this.mostActive();
+    this.$store.dispatch('fetchTotalTimeSpent');
+    this.$store.dispatch('fetchAllDaily');
+    this.$store.dispatch('fetchMostActiveUsers');
   },
 };
 </script>
-
-
-<style scoped>
-</style>

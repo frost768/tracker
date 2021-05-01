@@ -1,9 +1,9 @@
 const client = require('http');
-
+const ip = '192.168.1.22';
 function request(url,body={}) {
     const req = client.request({ 
         path: url,
-        host: '192.168.43.1',
+        host: ip,
         port: 9000,
         method:'POST'
     });
@@ -19,5 +19,6 @@ function request(url,body={}) {
 }
 
 module.exports = {
-    request
+    request,
+    ip
 }

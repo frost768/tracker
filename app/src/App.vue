@@ -26,7 +26,7 @@
 import UserList from './components/UserList.vue';
 
 export default {
-  name: "App",
+  name: 'App',
   components: {
     UserList,
   },

@@ -1,11 +1,10 @@
 <template>
-  <apexchart :type="type" :options="options" :series="series"></apexchart>
+  <apexchart :type="type" :options="options" :series="options.series"></apexchart>
 </template>
 <script>
 
 export default {
-  props: ['type', 'options','series'],
-  
+  props: ['type', 'options'],
 }
 </script>
 
