@@ -73,10 +73,10 @@ function compareUsers(query) {
         u2.time_on < u1.time_on && u2_left_in_u1_time;
       // let u2_entered_before_u1 = !u2_entered_in_u1_time && u2.time_on < u1.time_on;
       // let U1JoinAndU2LeavesBefore = u2_entered_before_u1 && (u1.time_on < u2.time_off && u1.time_on > u2.time_on);
-      const u1on  = new Date(u1.time_on).toLocaleString('tr');
-      const u1off = new Date(u1.time_off).toLocaleString('tr');
-      const u2on  = new Date(u2.time_on).toLocaleString('tr');
-      const u2off = new Date(u2.time_off).toLocaleString('tr');
+      const u1on  = u1.time_on;
+      const u1off = u1.time_off;
+      const u2on  = u2.time_on;
+      const u2off = u2.time_off;
       const day = { 
         u1on,
         u1off,
@@ -105,7 +105,7 @@ function compareUsers(query) {
   const convo_end = encounter.length;
   const tt = encounter.reduce((a, b) => a + b.time, 0);
   const proportion = tt / convo_end;
-  return { convo_end, encounter, tt, proportion };
+  return { id2 ,convo_end, encounter, tt, proportion };
 }
 
 function compareUsersSQL({ id1, id2, min = 0 }) {
@@ -181,7 +181,7 @@ function getUserSessions(query) {
   let sql_query = `SELECT time_on, time_off, (time_spent / 1000) as time_spent FROM sessions WHERE user_id = ${id}`;
   if (from) sql_query += ` AND time_on > ${from}`;
   if (to) sql_query += ` AND time_on < ${to}`;
-  if (minute_limit) sql_query += ` AND time_spent > ${minute_limit} * 60`
+  if (minute_limit) sql_query += ` AND time_spent > ${minute_limit * 60 * 1000} `;
   return db.prepare(sql_query).all();
 }
 
@@ -200,10 +200,7 @@ function getUserTotalTime({ id }) {
 
 /** 
  * Returns usage percentage of a user 
- * 
  * Calculated as total time divided by first session subtracted from last one
- * 
- * total_time / (last_session - first_session)
  * @param {Object} id
  * @param {number} id.id
  * @returns {number} percent
@@ -259,6 +256,7 @@ function getDailyUsage(id) {
     AVG(time_spent) / 1000 AS avg,
     COUNT(*) AS times,
     SUM(time_spent / 1000) AS tt,
+    time_on,
     DATE(time_on / 1000, 'unixepoch', 'localtime') AS day
     FROM sessions`
     if(id) query += ` WHERE user_id = ${id.id}`
