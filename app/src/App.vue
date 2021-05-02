@@ -1,23 +1,22 @@
 <template>
   <v-app>
     <v-navigation-drawer v-model="drawer" app>
-        <UserList />
+      <UserList />
     </v-navigation-drawer>
 
-    <v-app-bar
-     color="green"
-     app>
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-      <v-app-bar-title color="white">WhatsApp Tracker</v-app-bar-title>
+    <v-app-bar color="green" app>
+      <v-app-bar-nav-icon @click.stop="drawer = !drawer">
+        <v-icon>mdi-format-list-bulleted</v-icon>
+        </v-app-bar-nav-icon>
+      <v-app-bar-title color="white"></v-app-bar-title>
     </v-app-bar>
 
-    <!-- Sizes your content based upon application components -->
     <v-main>
-      <router-view :key="$route.fullPath"/>
+      <router-view :key="$route.fullPath" />
     </v-main>
 
     <v-footer app>
-      <!-- -->
+
     </v-footer>
   </v-app>
 </template>
@@ -30,10 +29,10 @@ export default {
   components: {
     UserList,
   },
-  data(){
+  data() {
     return {
-      drawer:false,
-    }
+      drawer: false,
+    };
   },
 };
 </script>

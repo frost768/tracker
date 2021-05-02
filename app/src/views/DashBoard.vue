@@ -1,7 +1,7 @@
 <template>
   <v-col>
     <v-row>
-      <v-col lg="4" md="6" cols="6">
+      <v-col lg="4" md="6" cols="12">
         <v-card>
           <v-card-title>En Aktif Kullanıcılar</v-card-title>
           <chart
@@ -10,7 +10,7 @@
           ></chart>
         </v-card>
       </v-col>
-      <v-col lg="4" md="4" cols="6">
+      <v-col lg="4" md="4" cols="12">
         <v-card>
           <v-card-title>Harcanan Zaman</v-card-title>
           <v-list-item three-line>

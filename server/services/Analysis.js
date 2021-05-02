@@ -175,13 +175,13 @@ function compareUsersSQL({ id1, id2, min = 0 }) {
  * @returns {Session[]} Sessions of a user
  */
 function getUserSessions(query) {
-  let { id, from, to, minute_limit } = query;
+  let { id, from, to, minute_limit = 1 } = query;
   from = Date.parse(from);
   to = Date.parse(to);
   let sql_query = `SELECT time_on, time_off, (time_spent / 1000) as time_spent FROM sessions WHERE user_id = ${id}`;
   if (from) sql_query += ` AND time_on > ${from}`;
   if (to) sql_query += ` AND time_on < ${to}`;
-  if (minute_limit) sql_query += ` AND time_spent > ${minute_limit * 60 * 1000} `;
+  sql_query += ` AND time_spent > ${minute_limit * 60 * 1000} `;
   return db.prepare(sql_query).all();
 }
 

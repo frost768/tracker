@@ -1,44 +1,24 @@
 <template>
   <div>
     <v-card class="mx-auto">
-      <v-list-item>
-        <v-list-item-content>
-          <v-list-item-title class="title mb-1">{{
-            user.name
-          }}</v-list-item-title>
-          <div v-if="user.analysis != null">
-            Son görülme: {{ user.lastSeen }}<br />
-            En uzun oturum:{{
-              Math.floor(user.analysis.longestSession.duration / 60)
-            }}
-            dakika<br />
-            {{ user.analysis.longestSession.day }}<br />
-            Toplam harcanan zaman:
-            <v-chip
-              :color="
-                Math.floor(user.analysis.totalTime / 3600) > 300
-                  ? 'red'
-                  : 'green'
-              "
-              >{{ Math.floor(user.analysis.totalTime / 3600) }}</v-chip
-            >
-            saat <br />
-            Kullanım yüzdesi: %
-            {{ Math.floor(user.analysis.usagePercent) }}
-          </div>
-          <v-progress-linear
-            v-else
-            indeterminate
-            height="20"
-            color="green darken-2"
-          ></v-progress-linear>
-        </v-list-item-content>
-
-        <v-list-item-avatar tile size="300" color="grey">
-          <v-img v-if="user.pp != './logo.png'" :src="user.pp"></v-img>
-          <v-img v-else src="@/assets/logo.png" alt=""></v-img
-        ></v-list-item-avatar>
-      </v-list-item>
+      <v-img v-if="user.pp != './img_avatar5.png'" :src="user.pp"></v-img>
+      <v-img v-else src="@/assets/logo.png"></v-img>
+      <v-card-title>{{ user.name }}</v-card-title>
+      <v-card-subtitle>
+        <div v-if="user.analysis != null">
+          Son görülme: {{ user.lastSeen }}<br />
+          En uzun oturum:{{ Math.floor(user.analysis.longestSession.duration / 60) }} dakika<br />
+          {{ user.analysis.longestSession.day }}<br />
+          Toplam harcanan zaman: {{ Math.floor(user.analysis.totalTime / 3600) }} saat <br />
+          Kullanım yüzdesi: %{{ Math.floor(user.analysis.usagePercent) }}
+        </div>
+        <v-progress-linear
+          v-else
+          indeterminate
+          height="5"
+          color="green darken-2"
+        ></v-progress-linear>
+      </v-card-subtitle>
     </v-card>
   </div>
 </template>
@@ -51,7 +31,6 @@ export default {
   computed: {
     ...mapGetters(['user']),
   },
-
   created() {
     this.$store.dispatch('fetchUser', this.$route.params.id);
   },

@@ -1,13 +1,15 @@
 <template>
-  <div>
-    <user-card></user-card>
+  <v-row>
+    <v-col lg="2">
+      <user-card></user-card>
+    </v-col>
 
     <v-col lg="10" md="8" cols="12">
       <v-tabs>
         <v-tab>İstatistikler</v-tab>
         <v-tab-item v-if="analysis">
           <v-row>
-            <v-col md="6" lg="6" cols="12">
+            <v-col md="12" lg="6" cols="12">
               <v-row>
                 <v-col cols="4" sm="4" md="4">
                   <v-menu
@@ -68,7 +70,7 @@
                 <chart :type="'scatter'" :options="sessions.options"></chart>
               </v-card>
             </v-col>
-            <v-col md="6" lg="6" cols="12">
+            <v-col md="12" lg="6" cols="12">
               <v-card>
                 <v-card-title>Günlük Kullanım</v-card-title>
                 <chart
@@ -79,7 +81,7 @@
             </v-col>
           </v-row>
           <v-row>
-            <v-col md="6" lg="6" cols="12">
+            <v-col md="12" lg="6" cols="12">
               <v-card>
                 <v-card-title>Saat Sıklıkları</v-card-title>
                 <chart
@@ -88,7 +90,7 @@
                 ></chart>
               </v-card>
             </v-col>
-            <v-col md="6" lg="6" cols="12">
+            <v-col md="12" lg="6" cols="12">
               <v-card>
                 <v-card-title>Dakika Sıklıkları</v-card-title>
                 <chart
@@ -97,7 +99,7 @@
                 ></chart>
               </v-card>
             </v-col>
-            <v-col md="6" lg="6" cols="12">
+            <v-col md="12" lg="6" cols="12">
               <v-card>
                 <v-card-title>Zaman Sıklıkları</v-card-title>
                 <chart
@@ -111,24 +113,22 @@
         <v-tab-item v-else>
           <v-progress-linear
             indeterminate
-            height="20"
+            height="5"
             color="green darken-2"
           ></v-progress-linear
         ></v-tab-item>
         <v-tab>Karşılaştırma</v-tab>
         <v-tab-item>
-          {{  }}
           <div v-for="user in users" :key="user.id">
             <v-card>
               <v-card-title>{{ user.name }}</v-card-title>
-              <v-col v-if="comparison">
+              <v-col md="12" lg="6" cols="12">
                 <div v-if="comparison(user.id)">
-                  Toplam Zaman: {{ comparison(user.id).tt / 60 }} dk
-                  Karşılaşma: {{ comparison(user.id).convo_end }}
-                  Oran: {{ comparison(user.id).proportion }}
+                  Toplam Zaman: {{ comparison(user.id).tt / 60 }} dk Karşılaşma:
+                  {{ comparison(user.id).convo_end }} Oran:
+                  {{ comparison(user.id).proportion }}
                   <chart :options="comparison(user.id).options"></chart>
                 </div>
-            
               </v-col>
               <v-card-actions
                 ><v-btn text @click="compare(user.id)"
@@ -140,7 +140,7 @@
         </v-tab-item>
       </v-tabs>
     </v-col>
-  </div>
+  </v-row>
 </template>
 
 <script>
@@ -154,13 +154,11 @@ export default {
     UserCard,
     Chart,
   },
-  data: () => {
-    var now = new Date();
+  data() {
+    var now = new Date().toISOString().substr(0, 10);
     return {
-      dtFrom: new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
-        .toISOString()
-        .substr(0, 10),
-      dtTo: now.toISOString().substr(0, 10),
+      dtFrom: now,
+      dtTo: now,
       dtFromMenu: false,
       dtToMenu: false,
     };
@@ -178,7 +176,13 @@ export default {
     },
   },
   computed: {
-    ...mapGetters(['sessions', 'analysis', 'users', 'comparisons','comparison']),
+    ...mapGetters([
+      'sessions',
+      'analysis',
+      'users',
+      'comparisons',
+      'comparison',
+    ]),
   },
   mounted() {
     this.$store.dispatch('fetchUserSessions', { id: this.$route.params.id });

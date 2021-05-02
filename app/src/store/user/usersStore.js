@@ -79,7 +79,7 @@ const mutations = {
         },
       },
       series: [
-        { data: sessions.map(k => [k.time_on, parseInt(k.time_spent)]) },
+        { name:'Süre (dk)',data: sessions.map(k => [k.time_on, parseInt(k.time_spent / 60)]) },
       ],
     };
     state.user.sessions = sessions;
@@ -229,16 +229,14 @@ const actions = {
   },
 
   async fetchUserSessions({ commit }, query) {
-    let { id, from, to } = query;
     let now = new Date();
-
-    if (!from)
-      from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
-        .toISOString()
-        .substr(0, 10);
-    if (!to) to = now.toISOString().substr(0, 10);
-
-    const sessions = await getUserSessions({ id, from, to });
+    let { 
+      id, 
+      from = now.toDateString(), 
+      to = new Date(now.getFullYear(),now.getMonth(), now.getDate()+1).toDateString(), 
+      minute_limit 
+    } = query; 
+    const sessions = await getUserSessions({ id, from, to, minute_limit });
     if (sessions.length) {
       const lastSeen = new Date(
         sessions[sessions.length - 1].time_off
@@ -246,6 +244,7 @@ const actions = {
       commit('setUserSessions', sessions);
       commit('setUserLastSeen', lastSeen);
     } else {
+      commit('setUserSessions', []);
       commit('setUserLastSeen', 'Verilen aralıkta oturum yok');
     }
   },
