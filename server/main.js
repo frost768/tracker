@@ -29,9 +29,9 @@ async function main() {
     await sendRequest();
   //})
 
-  wa.on('user-presence-update', json => {
-    users = sessionLogger(json, users);
-    a.emit('send', json);
+  wa.on('CB:Presence', json => {
+    users = sessionLogger(json[1], users);
+    a.emit('send', json[1]);
   });
 
   logger.on('user-presence-update', json => {

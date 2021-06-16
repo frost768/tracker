@@ -4,7 +4,7 @@ const { writeFileSync } = require('fs');
 const wa = new WAConnection();
 wa.autoReconnect = ReconnectMode.off;
 wa.loadAuthInfo('./data/auth_info.json');
-wa.on('credentials-updated', (auth) =>
+wa.on('open', (auth) =>
     writeFileSync('./data/auth_info.json', JSON.stringify(auth, null, '\t'))
 );
 

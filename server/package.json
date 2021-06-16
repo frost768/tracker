@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@adiwajshing/baileys": "3.4.1",
+    "@adiwajshing/baileys": "3.5.1",
     "@mtproto/core": "5.3.0",
     "better-sqlite3": "^7.1.2",
     "dropbox-v2-api": "^2.4.38",
