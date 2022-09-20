@@ -1,6 +1,6 @@
-const { logger, init }  = require('./tg.js');
-const { wa, sendRequest }  = require('./wa.js');
-const { checkTempJson, sessionLogger, tgSessionLogger }  = require('./utils.js');
+const { startSock } = require('./wa.js');
+const { checkTempJson, sessionLogger } = require('./utils.js');
+// const { logger, init }  = require('./tg.js');
 const { startBackup } = require('./services/DropboxBackup.js');
 
 // --------------- WEBSOCKET -------------------
@@ -12,9 +12,9 @@ wss.on('connection', (socket, req) => {
   a.on('send', (args) => {
     socket.send(JSON.stringify(args));
   });
-  
-  socket.on('close',()=>{
-      console.log('cikti')
+
+  socket.on('close', () => {
+    console.log('cikti')
   })
 });
 // ---------------------------------------------
@@ -22,23 +22,24 @@ wss.on('connection', (socket, req) => {
 let users = [];
 let tg_users = [];
 async function main() {
-   //init(async ()=>{
-    startBackup();
-    users = checkTempJson();
-    await wa.connect()
-    await sendRequest();
-  //})
-
-  wa.on('CB:Presence', json => {
-    users = sessionLogger(json[1], users);
+  startBackup();
+  users = checkTempJson();
+  startSock(update => {
+    const { id, presences } = update;
+    const json = {
+      id,
+      presences,
+      type: presences[id].lastKnownPresence
+    };
+    users = sessionLogger(json, users);
     a.emit('send', json[1]);
   });
 
-  logger.on('user-presence-update', json => {
-    tg_users = tgSessionLogger(json, tg_users);
-  })
+  // logger.on('user-presence-update', json => {
+  //   tg_users = tgSessionLogger(json, tg_users);
+  // })
 
-  
+
 }
 
 main().catch((x) => console.log(x));
