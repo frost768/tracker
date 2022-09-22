@@ -20,28 +20,13 @@
 import { mapActions } from 'vuex';
 import store from '../store/index';
 import DBRecord from './DBRecords.vue';
-import { ip } from '../services/httpClient';
+
 export default {
   name: 'UserList',
   props: {},
   components: {
     DBRecord,
   },
-  created(){
-    this.ws = new WebSocket(`ws://${ip}:8081`);
-    store.dispatch('fetchUsers').then(()=>{
-      store.dispatch('fetchOnline').then(()=> {
-      this.ws.onmessage = function(data) {
-        store.commit('setOnline',JSON.parse(data.data));
-      }
-      })
-    })
-    
-    this.ws.onopen= ()=>{
-      console.log('Connected');
-    };
-  },
-
   computed: {
     users(){
       return store.getters.users;

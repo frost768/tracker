@@ -1,62 +1,67 @@
-const { useMultiFileAuthState, fetchLatestBaileysVersion, DisconnectReason } = require('@adiwajshing/baileys');
-const makeWASocket = require('@adiwajshing/baileys');
-const names = require('./data/names.json');
+
+// const names = require('./data/names.json');
 const { writeFileSync } = require('fs');
-const startSock = async (onPresenceUpdate) => {
-	const { state, saveCreds } = await useMultiFileAuthState('data/auth')
-	// fetch latest version of WA Web
-	const { version, isLatest } = await fetchLatestBaileysVersion()
-	const sock = makeWASocket.default({
-		version,
-		printQRInTerminal: true,
-		auth: state,
-	});
+const { DisconnectReason } = require('@adiwajshing/baileys');
+class WAEventHandler {
+	constructor(options = this.defaultOptions) {
+		this.socket = options.socket;
+		this.saveCreds = options.saveCreds;
+		this.onQR = options.onQR;
+		this.onPresenceUpdate = options.onPresenceUpdate;
+		this.socket.ev.on('connection.update', (update) => this.onConnectionUpdate(update, options.startSocket));
+		this.socket.ev.on('connection.update', ({ qr }) => this.onQR(qr));
+		this.socket.ev.on('contacts.set', this.onContactsSet);
+		
 
-	sock.ev.process(
-		// events is a map for event name => event data
-		async (events) => {
-			// something about the connection changed
-			// maybe it closed, or we received all offline message or connection opened
-			if (events['connection.update']) {
-				const update = events['connection.update']
-				const { connection, lastDisconnect } = update
-				if (connection === 'close') {
-					// reconnect if not logged out
-					if (lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) {
-						startSock()
-					} else {
-						console.log('Connection closed. You are logged out.')
-					}
-				} else if (connection === 'open') {
-					sendRequest(sock);
-				}
-			}
+		this.socket.ev.on('creds.update', async (e) => {
+			await this.saveCreds();
+		});
 
-			if (events['creds.update']) {
-				await saveCreds()
-			}
+		this.socket.ev.on('presence.update', (update) => {
+			this.onPresenceUpdate(update)
+		});
+	}
+	defaultOptions = {
+		socket: null,
+		onPresenceUpdate: null,
+		saveCreds: null,
+		authState: null,
+		onQR: null,
+		startSocket: null
+	};
 
-			if (events['presence.update']) {
-				const update = events['presence.update']
-				onPresenceUpdate(update)
+	async onConnectionUpdate(update, startSocket) {
+		const { connection, lastDisconnect } = update;
+		if (connection === 'close') {
+			// reconnect if not logged out
+			if (lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) {
+				this.socket = await startSocket();
+			} else {
+				console.log('Connection closed. You are logged out.')
 			}
+		} else if (connection === 'open') {
+			// sendRequest(sock);
+		}
+	}
+
+	onContactsSet(arg) {
+		console.log('ddffsdds');
+		console.log(arg.contacts);
+	}
+
+	async sendRequest(wa) {
+		const timer = (ms) => new Promise((res) => setTimeout(res, ms));
+		let requests = [];
+		names.forEach(user => {
+			// wa.profilePictureUrl(user.id + '@g.us')
+			// .then(data => user.pp = data)
+			// .catch(err => console.log(err))
+
+			requests.push(timer(100).then(() => wa.presenceSubscribe(user.id + '@s.whatsapp.net')))
 		})
-	return sock;
+		await Promise.all(requests).then(() => writeFileSync('./data/names.json', JSON.stringify(names, null, '\t')))
+	}
 }
 
-module.exports = {
-	startSock
-};
 
-async function sendRequest(wa) {
-	const timer = (ms) => new Promise((res) => setTimeout(res, ms));
-	let requests = [];
-	names.forEach(user => {
-		// wa.profilePictureUrl(user.id + '@g.us')
-		// .then(data => user.pp = data)
-		// .catch(err => console.log(err))
-
-		requests.push(timer(100).then(() => wa.presenceSubscribe(user.id + '@s.whatsapp.net')))
-	})
-	await Promise.all(requests).then(() => writeFileSync('./data/names.json', JSON.stringify(names, null, '\t')))
-}
+module.exports = WAEventHandler;

@@ -7,7 +7,7 @@
     <v-app-bar color="green" app>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer">
         <v-icon>mdi-format-list-bulleted</v-icon>
-        </v-app-bar-nav-icon>
+      </v-app-bar-nav-icon>
       <v-app-bar-title color="white"></v-app-bar-title>
     </v-app-bar>
 
@@ -23,7 +23,8 @@
 
 <script>
 import UserList from './components/UserList.vue';
-
+import store from './store/index';
+import { ip } from './services/httpClient';
 export default {
   name: 'App',
   components: {
@@ -34,6 +35,25 @@ export default {
       drawer: false,
     };
   },
+  created() {
+    // store.dispatch('fetchUsers').then(() => {
+    //   store.dispatch('fetchOnline');
+    // });
+    const ws = new WebSocket(`ws://${ip}:9002`);
+    ws.onmessage = function (event) {
+      const response = JSON.parse(event.data);
+      if (response.type === 'qr' && response.data) {
+        store.commit('setQR', response.data);
+      }
+    }
+    ws.onerror = (err) => {
+      console.log(err);
+    }
+    ws.onopen = () => {
+      console.log('Connected');
+      ws.send('getQR');
+    };
+  }
 };
 </script>
 
