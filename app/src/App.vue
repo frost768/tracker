@@ -24,6 +24,7 @@
 <script>
 import UserList from './components/UserList.vue';
 import store from './store/index';
+import router from './router/index';
 import { ip } from './services/httpClient';
 export default {
   name: 'App',
@@ -35,28 +36,45 @@ export default {
       drawer: false,
     };
   },
+  methods: {
+    connectToWebSocket() {
+      const ws = new WebSocket(`ws://${ip}:9001`);
+      ws.onmessage = function (event) {
+        const response = JSON.parse(event.data);
+        if (response.type === 'qr' && response.data) {
+          store.commit('setQR', response.data);
+        }
+        if (response.type === 'connection-opened') {
+          store.commit('setConnected', true);
+          router.replace('/dashboard');
+        }
+        if (response.type === 'connection-closed') {
+          store.commit('setConnected', false);
+          router.replace('/');
+        }
+      };
+      ws.onerror = () => {
+        ws.close();
+        setInterval(() => {
+          this.connectToWebSocket();
+        }, 10_000);
+      }
+      ws.onclose = () => {
+        console.log('closed');
+        // this.connectToWebSocket();
+      }
+      ws.onopen = () => {
+        console.log('opened');
+        ws.send('getQR');
+      };
+    }
+  },
   created() {
     // store.dispatch('fetchUsers').then(() => {
     //   store.dispatch('fetchOnline');
     // });
-    const ws = new WebSocket(`ws://${ip}:9002`);
-    ws.onmessage = function (event) {
-      const response = JSON.parse(event.data);
-      if (response.type === 'qr' && response.data) {
-        store.commit('setQR', response.data);
-      }
+    this.connectToWebSocket();
 
-      if(response.type === 'connection-opened') {
-        this.$router.push('/dashboard');
-      }
-    }
-    ws.onerror = (err) => {
-      console.log(err);
-    }
-    ws.onopen = () => {
-      console.log('Connected');
-      ws.send('getQR');
-    };
   }
 };
 </script>

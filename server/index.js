@@ -24,6 +24,8 @@ function createServer() {
     }).listen(9000, ip);
 }
 
+createServer();
+
 module.exports = {
     createServer
 };

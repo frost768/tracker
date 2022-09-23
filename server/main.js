@@ -8,7 +8,7 @@ const { startBackup } = require('./services/DropboxBackup.js');
 // --------------- WEBSOCKET -------------------
 const { WebSocketServer } = require('ws');
 const { EventEmitter } = require('events');
-const wss = new WebSocketServer({ host: 'localhost', port: 9002 });
+const wss = new WebSocketServer({ port: 9001 });
 let eventEmitter = new EventEmitter();
 
 wss.on('close', () => {
@@ -43,6 +43,12 @@ wss.on('connection', (socket, req) => {
       type: 'connection-opened'
     }));
   });
+
+  eventEmitter.on('connection-closed', () => {
+    socket.send(JSON.stringify({
+      type: 'connection-closed'
+    }));
+  });
 });
 // ---------------------------------------------
 
@@ -61,6 +67,10 @@ function onPresenceUpdate(update) {
 
 function onConnectionOpened() {
   eventEmitter.emit('connection-opened');
+}
+
+function onConnectionClose() {
+  eventEmitter.emit('connection-closed');
 }
 
 async function startSocket() {
@@ -90,13 +100,14 @@ async function main() {
     onPresenceUpdate,
     authState: state,
     startSocket,
-    onConnectionOpened
+    onConnectionOpened,
+    onConnectionClose,
+    onQR: (qr) => {
+      qrCode = qr;
+      qr && eventEmitter.emit('qr', qr);
+    }
   });
 
-  eventHandler.onQR = (qr) => {
-    qrCode = qr;
-    eventEmitter.emit('qr', qr);
-  }
 
   // logger.on('user-presence-update', json => {
   //   tg_users = tgSessionLogger(json, tg_users);

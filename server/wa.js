@@ -1,13 +1,17 @@
 const { writeFileSync } = require('fs');
 const { DisconnectReason } = require('@adiwajshing/baileys');
 class WAEventHandler {
-	constructor(options = this.defaultOptions) {
+	constructor(options) {
+		this.defaultOptions = options;
+		this.setEventListeners(options);
+	}
+	setEventListeners(options) {
 		this.socket = options.socket;
 		this.saveCreds = options.saveCreds;
 		this.onQR = options.onQR;
 		this.onPresenceUpdate = options.onPresenceUpdate;
-		this.socket.ev.on('connection.update', (update) => this.onConnectionUpdate(update, options.startSocket, options.onConnectionOpened));
-		this.socket.ev.on('connection.update', ({ qr }) => this.onQR(qr));
+		this.socket.ev.on('connection.update', (update) => this.onConnectionUpdate(update, options));
+		this.socket.ev.on('connection.update', ({ qr }) => qr && this.onQR(qr));
 		this.socket.ev.on('contacts.set', this.onContactsSet);
 
 
@@ -26,30 +30,36 @@ class WAEventHandler {
 		authState: null,
 		onQR: null,
 		startSocket: null,
-		onConnectionOpened: null
-	};
-
-	async onConnectionUpdate(update, startSocket, onConnectionOpened) {
+		onConnectionOpened: null,
+		onConnectionClose: null
+	}
+	async onConnectionUpdate(update, options) {
 		const { connection, lastDisconnect } = update;
 		if (connection === 'close') {
 			// reconnect if not logged out
 			if (lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) {
-				this.socket = await startSocket();
+				options.startSocket().then((data) => {
+					const { socket, state, saveCreds } = data;
+					options.socket = socket;
+					this.setEventListeners(options);
+				}).catch((err) => {
+					options.onConnectionClose(err);
+				});
 			} else {
+				options.onConnectionClose();
 				console.log('Connection closed. You are logged out.')
 			}
 		} else if (connection === 'open') {
 			this.sendRequest();
-			onConnectionOpened();
+			options.onConnectionOpened();
 		}
 	}
 
 	onContactsSet(arg) {
-		console.log('ddffsdds');
 		console.log(arg.contacts);
 	}
 
-	async sendRequest(wa) {
+	async sendRequest() {
 		const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 		let requests = [];
 		const names = require('./data/names.json');
