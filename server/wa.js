@@ -38,7 +38,7 @@ class WAEventHandler {
 				console.log('Connection closed. You are logged out.')
 			}
 		} else if (connection === 'open') {
-			sendRequest();
+			this.sendRequest();
 		}
 	}
 
