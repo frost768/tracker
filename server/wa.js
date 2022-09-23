@@ -55,9 +55,9 @@ class WAEventHandler {
 		let requests = [];
 		const names = require('./data/names.json');
 		names.forEach(user => {
-			// this.socket.profilePictureUrl(user.id + '@g.us')
-			// 	.then(data => user.pp = data)
-			// 	.catch(err => console.log(err))
+			this.socket.profilePictureUrl(user.id + '@c.us')
+				.then(data => user.pp = data)
+				.catch(err => console.log(err))
 
 			requests.push(timer(100).then(() => this.socket.presenceSubscribe(user.id + '@s.whatsapp.net')))
 		})
