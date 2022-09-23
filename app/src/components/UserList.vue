@@ -2,9 +2,9 @@
   <div>
     <v-list-item>
       <v-list-item-content>
-        <v-list-item-title class="title"> 
-          <router-link to="/">Dashboard ({{ users.filter(x=> x.online).length }})</router-link>  
-          </v-list-item-title>
+        <v-list-item-title class="title">
+          <router-link to="/dashboard">Dashboard ({{ users.filter(x=> x.online).length }})</router-link>
+        </v-list-item-title>
       </v-list-item-content>
     </v-list-item>
     <v-divider></v-divider>
@@ -20,22 +20,24 @@
 import { mapActions } from 'vuex';
 import store from '../store/index';
 import DBRecord from './DBRecords.vue';
-
 export default {
   name: 'UserList',
   props: {},
   components: {
     DBRecord,
   },
+  created() {
+    store.dispatch('fetchUsers').then(() => store.dispatch('fetchOnline'));
+  },
+
   computed: {
-    users(){
+    users() {
       return store.getters.users;
     }
   },
 
   methods: {
     ...mapActions(['fetchUsers', 'fetchOnline']),
-    
   },
 };
 </script>

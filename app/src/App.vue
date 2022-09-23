@@ -52,16 +52,15 @@ export default {
           store.commit('setConnected', false);
           router.replace('/');
         }
+        if(response.type === 'presence-update' && store.getters.users.length > 0) {
+          store.commit('setOnline', response.data);
+        }
       };
       ws.onerror = () => {
-        ws.close();
-        setInterval(() => {
-          this.connectToWebSocket();
-        }, 10_000);
+        console.log('error');
       }
       ws.onclose = () => {
         console.log('closed');
-        // this.connectToWebSocket();
       }
       ws.onopen = () => {
         console.log('opened');

@@ -4,7 +4,8 @@ const state = {
 };
 
 const getters = {
-    qr: state => state.qr
+    qr: state => state.qr,
+    connected: state => state.connected
 };
 
 const mutations = {

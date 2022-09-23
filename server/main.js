@@ -56,13 +56,12 @@ let users = [];
 let tg_users = [];
 function onPresenceUpdate(update) {
   const { id, presences } = update;
-  const json = {
+  const presenceData = {
     id,
-    presences,
     type: presences[id].lastKnownPresence
   };
-  users = sessionLogger(json, users);
-  eventEmitter.emit('presence-update', json[1]);
+  users = sessionLogger(presenceData, users);
+  eventEmitter.emit('presence-update', presenceData);
 };
 
 function onConnectionOpened() {
