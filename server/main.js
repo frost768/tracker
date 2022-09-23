@@ -51,10 +51,10 @@ wss.on('connection', (socket, req) => {
   });
 
   eventEmitter.on('cmd-executed', response => {
-    socket.send({
+    socket.send(JSON.stringify({
       type: 'cmd-output',
-      data: JSON.stringify(response)
-    });
+      data: response
+    }));
   });
 });
 // ---------------------------------------------
