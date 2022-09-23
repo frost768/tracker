@@ -13,7 +13,7 @@ let eventEmitter = new EventEmitter();
 
 wss.on('connection', (socket, req) => {
   socket.on('message', (event) => {
-    const request = event.toJSON();
+    const request = JSON.parse(event.toString());
     if (request.type === 'getQR') {
       socket.send(JSON.stringify({
         type: 'qr',
@@ -110,6 +110,7 @@ async function main() {
 
   eventEmitter.on('cmd', (request) => {
     const command = request.type.split('-')[1];
+    console.log(command, request.data);
     eventHandler.sendWASocketCommand(command, request.data).then(response => {
       eventEmitter.emit('cmd-executed', response);
     });

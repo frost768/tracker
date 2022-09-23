@@ -39,6 +39,7 @@ export default {
   methods: {
     connectToWebSocket() {
       const ws = new WebSocket(`ws://${ip}:9001`);
+      window.ws = ws;
       ws.onmessage = function (event) {
         const response = JSON.parse(event.data);
         if (response.type === 'qr' && response.data) {
@@ -56,8 +57,7 @@ export default {
           store.commit('setOnline', response.data);
         }
         if(response.type === 'cmd-output') {
-          const request = JSON.stringify({ type: 'cmd-profilePictureUrl', data: { jid: 9 }});
-          ws.send(request);
+          console.log(response);
         }
       };
       ws.onerror = () => {
