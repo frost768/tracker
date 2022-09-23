@@ -45,6 +45,10 @@ export default {
       if (response.type === 'qr' && response.data) {
         store.commit('setQR', response.data);
       }
+
+      if(response.type === 'connection-opened') {
+        this.$router.push('/dashboard');
+      }
     }
     ws.onerror = (err) => {
       console.log(err);

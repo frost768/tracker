@@ -24,7 +24,7 @@ wss.on('connection', (socket, req) => {
       }))
     }
   });
-  eventEmitter.on('send', (update) => {
+  eventEmitter.on('presence-update', (update) => {
     socket.send(JSON.stringify({
       type: 'presence-update',
       data: update
@@ -35,6 +35,12 @@ wss.on('connection', (socket, req) => {
     socket.send(JSON.stringify({
       type: 'qr',
       data: qr
+    }));
+  });
+
+  eventEmitter.on('connection-opened', () => {
+    socket.send(JSON.stringify({
+      type: 'connection-opened'
     }));
   });
 });
@@ -50,8 +56,13 @@ function onPresenceUpdate(update) {
     type: presences[id].lastKnownPresence
   };
   users = sessionLogger(json, users);
-  eventEmitter.emit('send', json[1]);
+  eventEmitter.emit('presence-update', json[1]);
 };
+
+function onConnectionOpened() {
+  eventEmitter.emit('connection-opened');
+}
+
 async function startSocket() {
   const { state, saveCreds } = await useMultiFileAuthState('data/auth');
   // fetch latest version of WA Web
@@ -78,7 +89,8 @@ async function main() {
     saveCreds,
     onPresenceUpdate,
     authState: state,
-    startSocket
+    startSocket,
+    onConnectionOpened
   });
 
   eventHandler.onQR = (qr) => {

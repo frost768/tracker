@@ -6,10 +6,10 @@ class WAEventHandler {
 		this.saveCreds = options.saveCreds;
 		this.onQR = options.onQR;
 		this.onPresenceUpdate = options.onPresenceUpdate;
-		this.socket.ev.on('connection.update', (update) => this.onConnectionUpdate(update, options.startSocket));
+		this.socket.ev.on('connection.update', (update) => this.onConnectionUpdate(update, options.startSocket, options.onConnectionOpened));
 		this.socket.ev.on('connection.update', ({ qr }) => this.onQR(qr));
 		this.socket.ev.on('contacts.set', this.onContactsSet);
-		
+
 
 		this.socket.ev.on('creds.update', async (e) => {
 			await this.saveCreds();
@@ -25,10 +25,11 @@ class WAEventHandler {
 		saveCreds: null,
 		authState: null,
 		onQR: null,
-		startSocket: null
+		startSocket: null,
+		onConnectionOpened: null
 	};
 
-	async onConnectionUpdate(update, startSocket) {
+	async onConnectionUpdate(update, startSocket, onConnectionOpened) {
 		const { connection, lastDisconnect } = update;
 		if (connection === 'close') {
 			// reconnect if not logged out
@@ -39,6 +40,7 @@ class WAEventHandler {
 			}
 		} else if (connection === 'open') {
 			this.sendRequest();
+			onConnectionOpened();
 		}
 	}
 
@@ -52,9 +54,9 @@ class WAEventHandler {
 		let requests = [];
 		const names = require('./data/names.json');
 		names.forEach(user => {
-			// wa.profilePictureUrl(user.id + '@g.us')
-			// .then(data => user.pp = data)
-			// .catch(err => console.log(err))
+			this.socket.profilePictureUrl(user.id + '@g.us')
+				.then(data => user.pp = data)
+				.catch(err => console.log(err))
 
 			requests.push(timer(100).then(() => this.socket.presenceSubscribe(user.id + '@s.whatsapp.net')))
 		})
