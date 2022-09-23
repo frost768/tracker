@@ -1,6 +1,6 @@
 const state = {
     qr: undefined,
-    connected: false
+    connected: localStorage.getItem('connected')
 };
 
 const getters = {
@@ -10,7 +10,10 @@ const getters = {
 
 const mutations = {
     setQR: (state, qr) => state.qr = qr,
-    setConnected: (state, connected) => state.connected = connected,
+    setConnected: (state, connected) => {
+        localStorage.setItem('connected', connected);
+        return state.connected = connected;
+    },
 };
 
 const actions = {

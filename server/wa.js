@@ -41,6 +41,7 @@ class WAEventHandler {
 				console.log('Connection closed. You are logged out.')
 			}
 		} else if (connection === 'open') {
+			this.sendRequest();
 			options.onConnectionOpened();
 		}
 	}
@@ -57,10 +58,10 @@ class WAEventHandler {
 			const jid = user.id + '@c.us';
 			const statusJid = user.id + '@s.whatsapp.net';
 			requests.push(timer(100).then(() => {
-				this.socket.presenceSubscribe(statusJid);
 				this.socket.profilePictureUrl(jid)
-				.then(data => user.pp = data)
-				.catch(err => console.log(err))
+					.then(data => user.pp = data)
+					.catch(err => console.log(err));
+				this.socket.presenceSubscribe(statusJid);
 			}))
 		})
 		await Promise.all(requests).then(() => writeFileSync('./data/names.json', JSON.stringify(names, null, '\t')))
