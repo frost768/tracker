@@ -57,6 +57,7 @@ class WAEventHandler {
 		names.forEach(user => {
 			const jid = user.id + '@c.us';
 			const statusJid = user.id + '@s.whatsapp.net';
+			console.log(jid);
 			requests.push(timer(100).then(() => {
 				this.socket.profilePictureUrl(jid)
 					.then(data => user.pp = data)
