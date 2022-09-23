@@ -1,5 +1,3 @@
-
-// const names = require('./data/names.json');
 const { writeFileSync } = require('fs');
 const { DisconnectReason } = require('@adiwajshing/baileys');
 class WAEventHandler {
@@ -40,7 +38,7 @@ class WAEventHandler {
 				console.log('Connection closed. You are logged out.')
 			}
 		} else if (connection === 'open') {
-			// sendRequest(sock);
+			sendRequest();
 		}
 	}
 
@@ -52,12 +50,13 @@ class WAEventHandler {
 	async sendRequest(wa) {
 		const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 		let requests = [];
+		const names = require('./data/names.json');
 		names.forEach(user => {
 			// wa.profilePictureUrl(user.id + '@g.us')
 			// .then(data => user.pp = data)
 			// .catch(err => console.log(err))
 
-			requests.push(timer(100).then(() => wa.presenceSubscribe(user.id + '@s.whatsapp.net')))
+			requests.push(timer(100).then(() => this.socket.presenceSubscribe(user.id + '@s.whatsapp.net')))
 		})
 		await Promise.all(requests).then(() => writeFileSync('./data/names.json', JSON.stringify(names, null, '\t')))
 	}
