@@ -55,6 +55,10 @@ export default {
         if(response.type === 'presence-update' && store.getters.users.length > 0) {
           store.commit('setOnline', response.data);
         }
+        if(response.type === 'cmd-output') {
+          const request = JSON.stringify({ type: 'cmd-profilePictureUrl', data: { jid: 9 }});
+          ws.send(request);
+        }
       };
       ws.onerror = () => {
         console.log('error');
@@ -64,7 +68,7 @@ export default {
       }
       ws.onopen = () => {
         console.log('opened');
-        ws.send('getQR');
+        ws.send(JSON.stringify({ type: 'getQR' }));
       };
     }
   },

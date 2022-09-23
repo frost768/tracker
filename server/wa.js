@@ -7,17 +7,11 @@ class WAEventHandler {
 	}
 	setEventListeners(options) {
 		this.socket = options.socket;
-		this.saveCreds = options.saveCreds;
 		this.onQR = options.onQR;
 		this.onPresenceUpdate = options.onPresenceUpdate;
 		this.socket.ev.on('connection.update', (update) => this.onConnectionUpdate(update, options));
 		this.socket.ev.on('connection.update', ({ qr }) => qr && this.onQR(qr));
 		this.socket.ev.on('contacts.set', this.onContactsSet);
-
-
-		this.socket.ev.on('creds.update', async (e) => {
-			await this.saveCreds();
-		});
 
 		this.socket.ev.on('presence.update', (update) => {
 			this.onPresenceUpdate(update)
@@ -26,8 +20,6 @@ class WAEventHandler {
 	defaultOptions = {
 		socket: null,
 		onPresenceUpdate: null,
-		saveCreds: null,
-		authState: null,
 		onQR: null,
 		startSocket: null,
 		onConnectionOpened: null,
@@ -38,8 +30,7 @@ class WAEventHandler {
 		if (connection === 'close') {
 			// reconnect if not logged out
 			if (lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) {
-				options.startSocket().then((data) => {
-					const { socket, state, saveCreds } = data;
+				options.startSocket().then((socket) => {
 					options.socket = socket;
 					this.setEventListeners(options);
 				}).catch((err) => {
@@ -71,6 +62,13 @@ class WAEventHandler {
 			requests.push(timer(100).then(() => this.socket.presenceSubscribe(user.id + '@s.whatsapp.net')))
 		})
 		await Promise.all(requests).then(() => writeFileSync('./data/names.json', JSON.stringify(names, null, '\t')))
+	}
+
+	sendWASocketCommand(command, arg) {
+		if (typeof this.socket[command] !== 'function') {
+			return;
+		}
+		return this.socket[command](arg);
 	}
 }
 
